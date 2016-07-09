@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, session, url_for, flash
+from flask import Flask, render_template, redirect, request, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required
 import eveapi
 from prest import Prest
@@ -13,7 +13,8 @@ xmlapi = eveapi.EVEAPIConnection()
 prest = Prest(
     client_id=app.config['EVE_OAUTH_CLIENT_ID'],
     client_secret=app.config['EVE_OAUTH_SECRET'],
-    callback_url=app.config['EVE_OAUTH_CALLBACK']
+    callback_url=app.config['EVE_OAUTH_CALLBACK'],
+    scope=''
 )
 db.app = app
 db.init_app(app)
@@ -29,11 +30,27 @@ def load_user(user_id):
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
-    if request.method == 'POST':
-        # TODO
-        pass
     applications = Application.query.filter_by(hidden=False).all()
     return render_template('index.html', applications=applications)
+
+
+@app.route('/app/add', methods=['GET', 'POST'])
+@login_required
+def add_app():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        reddit = request.form.get('reddit')
+        status = request.form.get('status')
+        apikey = request.form.get('apikey')
+        apicode = request.form.get('apicode')
+        alts = request.form.get('alts')
+        notes = request.form.get('notes')
+        app = Application(name, reddit, alts, status, notes)
+        db.session.add(app)
+        db.session.commit()
+        db.session.add(APIKey(app.id, apikey, apicode))
+        db.session.commit()
+    return render_template('add_app.html')
 
 
 @app.route('/eve_oauth/prompt')
@@ -45,11 +62,14 @@ def eve_oauth_prompt():
 @app.route('/eve_oauth/callback')
 def eve_oauth_callback():
     if 'error' in request.path:
-        flash('There was an error in EVE\'s response.', 'error')
+        flash('There was an error in EVE\'s response', 'error')
         return url_for('eve_oauth_prompt')
-    user = User.query.filter_by(name=session['character_name']).first()
+    auth = prest.authenticate(request.args['code'])
+    character_name = auth.whoami()['CharacterName']
+    user = User.query.filter_by(name=character_name).first()
     if not user:
-        return render_template('no_access.html')
+        flash('You, {}, are not whitelisted to use this app'.format(character_name), 'error')
+        return redirect(url_for('eve_oauth_prompt'))
     login_user(user)
     flash('Logged in', 'success')
     return redirect(url_for('index'))
@@ -59,7 +79,3 @@ def eve_oauth_callback():
 def logout():
     logout_user()
     return redirect(url_for('index'))
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)

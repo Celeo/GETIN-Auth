@@ -6,12 +6,10 @@ from hr.shared import db
 class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    character_id = db.Column(db.Integer)
-    character_name = db.Column(db.String)
+    name = db.Column(db.String)
 
-    def __init__(self, character_id, character_name):
-        self.character_id = character_id
-        self.character_name = character_name
+    def __init__(self, name):
+        self.name = name
 
     @property
     def is_authenticated(self):
@@ -33,6 +31,7 @@ class Application(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     character_name = db.Column(db.String)
+    reddit = db.Column(db.String)
     applied_date = db.Column(db.DateTime)
     status = db.Column(db.String)
     alts = db.Column(db.String)
@@ -40,13 +39,28 @@ class Application(db.Model):
     hidden = db.Column(db.Boolean)
     api_keys = db.relationship('APIKey', backref='application', lazy='dynamic')
 
-    def __init__(self, name, alts=None, notes=None):
+    def __init__(self, name, reddit, status='Applicant', alts=None, notes=None):
         self.character_name = name
+        self.reddit = reddit
         self.applied_date = datetime.utcnow()
-        self.status = 'Applied'
-        self.alts = ''
-        self.notes = ''
+        self.status = status
+        self.alts = alts
+        self.notes = notes
         self.hidden = False
+
+    @property
+    def api_key(self):
+        try:
+            return self.api_keys[0].key
+        except:
+            return ''
+
+    @property
+    def api_code(self):
+        try:
+            return self.api_keys[0].code
+        except:
+            return ''
 
     def __str__(self):
         return '<Application-{}>'.format(self.character_name)

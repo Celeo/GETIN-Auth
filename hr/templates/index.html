@@ -1,17 +1,62 @@
 {% extends 'base.html' %}
 
 
-{% block content %}
-<h1>Applications</h1>
+{% block head %}
+<script>
+    $(document).ready(function() {
+        // TODO
+    });
+</script>
+{% endblock head %}
 
-<div class="row">
+{% block content %}
+<div class="clearfix">
+    <h2 class="left">Members and Applicants</h2>
+    <a class="right btn-floating btn-large waves-effect waves-light red" href="{{ url_for('add_app') }}">
+        <i class="material-icons">add</i>
+    </a>
+</div>
+
+<div class="row pad-top">
     <div class="col l12">
-        <div class="card-panel blue lighten-2">
-            <p>
-                {% for app in applications %}
-                    {{ app }}<br>
-                {% endfor %}
-            </p>
+        <div>
+            {% if not applications %}
+                <p>
+                    No applications found. Use the red button above to add some.
+                </p>
+            {% else %}
+                <ul class="collapsible popout" data-collapsible="accordion">
+                    {% for app in applications %}
+                        <li>
+                            <div class="collapsible-header{% if loop.index == 1 %} active{% endif %}">{{ app.character_name }}</div>
+                            <div class="collapsible-body">
+                                <table class="blue lighten-5">
+                                    <thead>
+                                        <tr>
+                                            <th>Reddit</th>
+                                            <th>Timestamp</th>
+                                            <th>Status</th>
+                                            <th>Alts</th>
+                                            <th>Notes</th>
+                                            <th>API key</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{ app.reddit }}</td>
+                                            <td>{{ app.applied_date }}</td>
+                                            <td>{{ app.status }}</td>
+                                            <td>{{ app.alts }}</td>
+                                            <td>{{ app.notes }}</td>
+                                            <td>{{ app.api_key }} - {{ app.api_code }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
     </div>
 </div>
