@@ -1,24 +1,16 @@
 {% extends 'base.html' %}
 
 
-{% block head %}
-<script>
-    $(document).ready(function() {
-        // TODO
-    });
-</script>
-{% endblock head %}
-
 {% block content %}
 <div class="clearfix">
     <h2 class="left">Members and Applicants</h2>
-    <a class="right btn-floating btn-large waves-effect waves-light red" href="{{ url_for('add_app') }}">
+    <a class="right btn-floating btn-large waves-effect waves-light orange" href="{{ url_for('add_app') }}">
         <i class="material-icons">add</i>
     </a>
 </div>
 
 <div class="row pad-top">
-    <div class="col l12">
+    <div class="col s12">
         <div>
             {% if not applications %}
                 <p>
@@ -28,9 +20,12 @@
                 <ul class="collapsible popout" data-collapsible="accordion">
                     {% for app in applications %}
                         <li>
-                            <div class="collapsible-header{% if loop.index == 1 %} active{% endif %}">{{ app.character_name }}</div>
+                            <div class="collapsible-header{% if loop.index == 1 %} active{% endif %} clearfix">
+                                <span class="left">{{ app.character_name }}</span>
+                                <span class="right">{{ app.status }}</span>
+                            </div>
                             <div class="collapsible-body">
-                                <table class="blue lighten-5">
+                                <table class="orange lighten-5">
                                     <thead>
                                         <tr>
                                             <th>Reddit</th>

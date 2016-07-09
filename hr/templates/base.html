@@ -23,10 +23,10 @@
     </script>
     {% block head %}{% endblock head %}
 </head>
-<body>
+<body class="orange lighten-5">
 
 <nav>
-    <div class="nav-wrapper blue lighten-2">
+    <div class="nav-wrapper orange lighten-2">
         <div class="container">
             <a href="{{ url_for('index') }}" class="brand-logo">GETIN HR</a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
@@ -48,7 +48,7 @@
         {% if messages %}
             {% for category, message in messages %}
                 {% if category == 'success' %}
-                    <div class="card-panel light-green flashed disappear">
+                    <div class="card-panel light-orange flashed disappear">
                 {% else %}
                     <div class="card-panel red flashed">
                 {% endif %}
