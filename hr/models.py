@@ -48,6 +48,9 @@ class Application(db.Model):
         self.notes = ''
         self.hidden = False
 
+    def __str__(self):
+        return '<Application-{}>'.format(self.character_name)
+
 
 class APIKey(db.Model):
 
@@ -60,3 +63,6 @@ class APIKey(db.Model):
         self.application_id = application_id
         self.key = key
         self.code = code
+
+    def __str__(self):
+        return '<APIKey-{}>'.format(self.key)
