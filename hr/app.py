@@ -50,6 +50,7 @@ def add_app():
         db.session.commit()
         db.session.add(APIKey(app.id, apikey, apicode))
         db.session.commit()
+        flash('Character added', 'success')
     return render_template('add_app.html')
 
 
@@ -105,3 +106,13 @@ def eve_oauth_callback():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+@app.errorhandler(404)
+def error_404(e):
+    return render_template('error_404.html')
+
+
+@app.errorhandler(500)
+def error_500(e):
+    return render_template('error_500.html')
