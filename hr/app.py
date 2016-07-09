@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, request, url_for, flash
-from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import eveapi
 from prest import Prest
 
@@ -51,6 +51,32 @@ def add_app():
         db.session.add(APIKey(app.id, apikey, apicode))
         db.session.commit()
     return render_template('add_app.html')
+
+
+@app.route('/admin', methods=['GET', 'POSt'])
+@login_required
+def admin():
+    if not current_user.admin:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        name = request.form['name']
+        db.session.add(User(name))
+        db.session.commit()
+        flash(name + ' added as a recruiter', 'success')
+        return redirect(url_for('admin'))
+    admins = ', '.join([user.name for user in User.query.filter_by(admin=True).all()])
+    recruiters = User.query.all()
+    return render_template('admin.html', admins=admins, recruiters=recruiters)
+
+
+@app.route('/admin/revoke/<name>')
+def revoke_access(name):
+    if not current_user.admin:
+        return redirect(url_for('index'))
+    User.query.filter_by(name=name).delete()
+    db.session.commit()
+    flash('User access revoked for ' + name, 'success')
+    return redirect(url_for('admin'))
 
 
 @app.route('/eve_oauth/prompt')

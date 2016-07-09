@@ -7,9 +7,11 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
+    admin = db.Column(db.Boolean)
 
-    def __init__(self, name):
+    def __init__(self, name, admin=False):
         self.name = name
+        self.admin = admin
 
     @property
     def is_authenticated(self):

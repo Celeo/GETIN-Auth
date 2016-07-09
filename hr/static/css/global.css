@@ -16,3 +16,7 @@
 .pad-top {
     margin-top: 20px;
 }
+h2 > small {
+    font-size: 2rem;
+    color: rgba(107, 107, 107, 0.8);
+}

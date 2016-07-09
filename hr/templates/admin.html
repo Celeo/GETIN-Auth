@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<h2>Admin<small> this page is locked to <strong>{{ admins }}</strong></small></h2>
+
+<div class="card-panel">
+    <h4>The following people are recruiters</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Revoke?</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in recruiters %}
+                <tr>
+                    <td>{{ user.name }}</td>
+                    <td><a href="{{ url_for('revoke_access', name=user.name) }}" class="btn waves-efect waves-light red">Revoke</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card-panel">
+    <h4>Add access</h4>
+    <form action="{{ url_for('admin') }}" method="POST" class="col s12">
+        <div class="row">
+            <div class="input-field col s6">
+                <label for="name">Character (full) name</label>
+                <input type="text" name="name">
+            </div>
+        </div>
+        <div class="col s6">
+            <button class="btn waves-effect waves-light blue" type="submit" name="action">Add
+                <i class="material-icons right">send</i>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

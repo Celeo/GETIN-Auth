@@ -31,6 +31,9 @@
             <a href="{{ url_for('index') }}" class="brand-logo">GETIN HR</a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
             {% if not current_user.is_anonymous %}
+                {% if current_user.admin %}
+                    <li><a href="{{ url_for('admin') }}">Admin</a></li>
+                {% endif %}
                 <li><a href="{{ url_for('logout') }}">Logout {{ current_user.name }}</a></li>
             {% else %}
                 <li><a href="{{ url_for('eve_oauth_prompt') }}">Login</a></li>
