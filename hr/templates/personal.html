@@ -1,7 +1,30 @@
 {% extends 'base.html' %}
 
 
+{% block head %}
+<script>
+    $(document).ready(function() {
+        $('.modal-trigger').leanModal();
+    });
+</script>
+{% endblock head %}
+
 {% block content %}
+{% if current_user.member.api_keys.count() == 0 %}
+<div class="card-panel red lighten-1 flashed">
+    <p>
+        You need to have at least 1 API Key on file.
+    </p>
+</div>
+{% endif %}
+{% if not current_user.member.reddit %}
+<div class="card-panel red lighten-1 flashed">
+    <p>
+        You need to link your reddit account.
+    </p>
+</div>
+{% endif %}
+
 <h2>Me <small>(well, you)</small></h2>
 
 <table>
@@ -24,9 +47,9 @@
             <td>Reddit username</td>
             <td>
                 {% if current_user.member.reddit %}
-                    {{ current_user.member.reddit }}
+                    <a href="https://reddit.com/u/{{ current_user.member.reddit }}" target="_blank">{{ current_user.member.reddit }}</a>
                 {% else %}
-                    <a href="#">Link your account!</a>
+                    <a href="{{ reddit_link }}">Link your account!</a>
                 {% endif %}
             </td>
         </tr>
@@ -44,8 +67,35 @@
         </tr>
         <tr>
             <td>API key(s)</td>
-            <td>{{ current_user.member.api_keys.all() }}</td>
+            <td>
+                <a class="waves-effect waves-light btn modal-trigger orange" href="#modalAPI">Edit</a>
+            </td>
         </tr>
     </tbody>
 </table>
+
+<div id="modalAPI" class="modal bottom-sheet">
+    <div class="modal-content">
+        <h4>API keys</h4>
+        <p>
+            Enter your key or keys, one per line, in the form <code>keyID - vCode</code>.<br>
+            If your keyID was <code>10000</code> and vCode <code>aaaaaaaaa</code>, then you'd enter
+            <code>10000 - aaaaaaaaa</code> on the first line.
+        </p>
+        <div class="row">
+            <form action="{{ url_for('index') }}" method="POST" class="col s12" id="formKeys">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <label for="keys">Key(s)</label>
+                        <textarea name="keys" class="materialize-textarea" required>{{ current_user.member.get_keys() }}</textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
+        <button class="waves-effect waves-light btn-flat orange" type="submit" form="formKeys">Save</button>
+    </div>
+</div>
 {% endblock content %}

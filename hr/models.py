@@ -15,7 +15,6 @@ class User(db.Model):
 
     @property
     def is_authenticated(self):
-        print(self.member, self.member.status)
         return self.member and self.member.status == 'Member'
 
     @property
@@ -47,8 +46,9 @@ class Member(db.Model):
     hidden = db.Column(db.Boolean)
     api_keys = db.relationship('APIKey', backref='Member', lazy='dynamic')
 
-    def __init__(self, name, status='', reddit=None, alts=None, notes=None):
-        self.character_name = name
+    def __init__(self, character_name, corporation, status='', reddit=None, alts=None, notes=None):
+        self.character_name = character_name
+        self.corporation = corporation
         self.date = datetime.utcnow()
         self.status = status
         self.reddit = reddit
@@ -56,19 +56,15 @@ class Member(db.Model):
         self.notes = notes
         self.hidden = False
 
-    @property
-    def api_key(self):
-        try:
-            return self.api_keys[0].key
-        except:
-            return ''
+    def set_api_keys(self, keys):
+        APIKey.query.filter_by(member_id=self.id).delete()
+        for line in keys:
+            keyID, vCode = line.strip().split(' - ')
+            db.session.add(APIKey(self.id, keyID, vCode))
+        db.session.commit()
 
-    @property
-    def api_code(self):
-        try:
-            return self.api_keys[0].code
-        except:
-            return ''
+    def get_keys(self):
+        return '\n'.join(['{} - {}'.format(key.key, key.code) for key in self.api_keys.all()])
 
     def __str__(self):
         return '<Member-{}>'.format(self.character_name)

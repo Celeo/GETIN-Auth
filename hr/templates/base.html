@@ -25,47 +25,60 @@
 </head>
 <body class="orange lighten-5">
 
-<nav>
-    <div class="nav-wrapper orange lighten-2">
-        <div class="container">
-            <a class="brand-logo">GETIN
-                <span class="orange-text">in</span>Human<span class="orange-text">e</span> Resources
-            </a>
-            <ul id="nav-mobile" class="right hide-on-med-and-down">
-            {% if not current_user.is_anonymous %}
-                {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('index') }}">Home</a></li>
-                    <li><a href="{{ url_for('personal') }}">My info</a></li>
+<header>
+    <nav>
+        <div class="nav-wrapper orange lighten-2">
+            <div class="container">
+                <a class="brand-logo">GETIN
+                    <span class="orange-text">in</span>Human<span class="orange-text">e</span> Resources
+                </a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                {% if not current_user.is_anonymous %}
+                    {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('index') }}">My info</a></li>
+                        {% if current_user.member.status == 'Recruiter' or current_user.admin %}
+                            <li><a href="{{ url_for('Members') }}">Members</a></li>
+                        {% endif %}
+                    {% endif %}
+                    {% if current_user.admin %}
+                        <li><a href="{{ url_for('admin') }}">Admin</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('logout') }}">Log out</a></li>
+                {% elif not request.endpoint == 'login' %}
+                    <li><a href="{{ url_for('login') }}">Log in</a></li>
                 {% endif %}
-                {% if current_user.admin %}
-                    <li><a href="{{ url_for('admin') }}">Admin</a></li>
-                {% endif %}
-                <li><a href="{{ url_for('logout') }}">Logout {{ current_user.name }}</a></li>
-            {% elif not request.endpoint == 'login' %}
-                <li><a href="{{ url_for('login') }}">Login</a></li>
-            {% endif %}
-            </ul>
+                </ul>
+            </div>
         </div>
+    </nav>
+</header>
+
+<main>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'success' %}
+                        <div class="card-panel green lighten-1 flashed disappear">
+                    {% else %}
+                        <div class="card-panel red lighten-1 flashed">
+                    {% endif %}
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock content %}
     </div>
-</nav>
+</main>
 
-<div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                {% if category == 'success' %}
-                    <div class="card-panel green lighten-1 flashed disappear">
-                {% else %}
-                    <div class="card-panel red lighten-1 flashed">
-                {% endif %}
-                    <p>{{ message }}</p>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    {% block content %}{% endblock content %}
-</div>
+<footer class="page-footer footer-copyright orange lighten-2">
+    <div class="container">
+        &copy; 2016 <a href="https://celeodor.com"><i>Celeodor</i></a>,
+        <a href="https://git.celeodor.com/Celeo/GETIN-HR">source</a>,
+        contact: {{ config['CONTACT_EMAIL'] }}
+    </div>
+</footer>
 
 </body>
 </html>

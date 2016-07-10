@@ -1,3 +1,11 @@
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+main {
+    flex: 1 0 auto;
+}
 .card-panel > p {
     margin: 0;
     margin: 0;
@@ -31,4 +39,7 @@ h2 > small {
 }
 .container > .row {
     margin-top: 20px;
+}
+code {
+    color: red;
 }

@@ -38,8 +38,38 @@ def load_user(user_id):
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
+    if request.method == 'POST':
+        keys = request.form['keys']
+        errors = []
+        for key in keys.splitlines():
+            try:
+                keyID, vCode = key.strip().split(' - ')
+                auth = xmlapi.auth(keyID=keyID, vCode=vCode)
+                result = auth.account.APIKeyInfo()
+                if not result.key.accessMask == app.config['API_KEY_MASK']:
+                    errors.append('The key with ID "{}" has the wrong access mask. Has: {}, needs: {}'.format(
+                        keyID, result.key.accessMask, app.config['API_KEY_MASK']
+                    ))
+            except Exception as e:
+                errors.append('An error occurred with line "{}"'.format(key))
+                print(str(e))
+        if not errors:
+            current_user.member.set_api_keys(keys.splitlines())
+            flash('API key information saved', 'success')
+        else:
+            flash('; '.join(errors), 'error')
+        return redirect(url_for('index'))
+    reddit_link = reddit_oauth.get_authorize_url()
+    return render_template('personal.html', reddit_link=reddit_link)
+
+
+@app.route('/members', methods=['GET', 'POST'])
+@login_required
+def membership():
+    if not current_user.member.status == 'Recruiter' and not current_user.admin:
+        return redirect(url_for('index'))
     members = Member.query.filter_by(hidden=False).all()
-    return render_template('index.html', members=members)
+    return render_template('membership.html', members=members)
 
 
 @app.route('/members/add', methods=['GET', 'POST'])
@@ -100,6 +130,31 @@ def edit(id):
     return render_template('edit.html')
 
 
+@app.route('/join', methods=['GET', 'POST'])
+def join():
+    character_name = session.get('character_name') or current_user.name if not current_user.is_anonymous else None
+    if not character_name:
+        flash('Well, something went wrong. Try again?', 'error')
+        return redirect(url_for('login'))
+    member = current_user.member
+    if request.method == 'POST':
+        key = request.form['key']
+        code = request.form['code']
+        auth = xmlapi.auth(keyID=key, vCode=code)
+        result = auth.account.APIKeyInfo()
+        if not result.key.accessMask == app.config['API_KEY_MASK']:
+            flash('Wrong key mask - you need {}'.format(app.config['API_KEY_MASK']), 'error')
+            return redirect(url_for('join'))
+        member = Member(character_name, 'New')
+        db.session.add(member)
+        db.session.commit()
+        db.session.add(APIKey(member.id, key, code))
+        db.session.commit()
+        flash('Your application is in - someone will take a look soon', 'success')
+        return redirect(url_for('join'))
+    return render_template('join.html', character_name=character_name)
+
+
 @app.route('/check_access')
 def check_access():
     if current_user and not current_user.is_authenticated and not current_user.is_anonymous:
@@ -130,47 +185,24 @@ def eve_oauth_callback():
         return redirect(url_for('join'))
     character_affiliation = xmlapi.eve.CharacterAffiliation(ids=character_info['CharacterID'])
     corporation = character_affiliation.characters[0].corporationName
-    print('New character "{}" in corp "{}"'.format(character_name, corporation))
     user = User(character_name)
     db.session.add(user)
-    db.session.add(Member(character_name, 'Member' if corporation == app.config['CORPORATION'] else 'New'))
+    db.session.add(Member(character_name, corporation, 'Member' if corporation == app.config['CORPORATION'] else 'New'))
     db.session.commit()
     login_user(user)
     if corporation == app.config['CORPORATION']:
         flash('Welcome to HR', 'success')
         return redirect(url_for('index'))
-    print('{} is in corp {} instead of {}'.format(character_name, corporation, app.config['CORPORATION']))
     return redirect(url_for('join'))
 
 
-@app.route('/join', methods=['GET', 'POST'])
-def join():
-    character_name = session.get('character_name') or current_user.name if not current_user.is_anonymous else None
-    if not character_name:
-        flash('Well, something went wrong. Try again?', 'error')
-        return redirect(url_for('login'))
-    member = current_user.member
-    if request.method == 'POST':
-        key = request.form['key']
-        code = request.form['code']
-        auth = xmlapi.auth(keyID=key, vCode=code)
-        result = auth.account.APIKeyInfo()
-        if not result.key.accessMask == app.config['API_KEY_MASK']:
-            flash('Wrong key mask - you need {}'.format(app.config['API_KEY_MASK']), 'error')
-            return redirect(url_for('join'))
-        member = Member(character_name, 'New')
-        db.session.add(member)
-        db.session.commit()
-        db.session.add(APIKey(member.id, key, code))
-        db.session.commit()
-        flash('Your application is in - someone will take a look soon', 'success')
-        return redirect(url_for('join'))
-    return render_template('join.html', character_name=character_name)
-
-
-@app.route('/me')
-def personal():
-    return render_template('personal.html')
+@app.route('/reddit/callback')
+@login_required
+def reddit_oauth_callback():
+    username = reddit_oauth.get_token(request.args['code'])
+    current_user.member.reddit = username
+    db.session.commit()
+    return redirect(url_for('index'))
 
 
 @app.route('/logout')
