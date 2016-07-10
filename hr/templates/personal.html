@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<h2>Me <small>(well, you)</small></h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Setting</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Character name</td>
+            <td>{{ current_user.member.character_name }}</td>
+        </tr>
+        <tr>
+            <td>Current corporation</td>
+            <td>{{ current_user.member.corporation }}</td>
+        </tr>
+        <tr>
+            <td>Reddit username</td>
+            <td>
+                {% if current_user.member.reddit %}
+                    {{ current_user.member.reddit }}
+                {% else %}
+                    <a href="#">Link your account!</a>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>Creation date</td>
+            <td>{{ current_user.member.date }}</td>
+        </tr>
+        <tr>
+            <td>Membership status</td>
+            <td>{{ current_user.member.status }}</td>
+        </tr>
+        <tr>
+            <td>Alts</td>
+            <td>{{ current_user.member.alts }}</td>
+        </tr>
+        <tr>
+            <td>API key(s)</td>
+            <td>{{ current_user.member.api_keys.all() }}</td>
+        </tr>
+    </tbody>
+</table>
+{% endblock content %}

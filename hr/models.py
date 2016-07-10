@@ -15,6 +15,7 @@ class User(db.Model):
 
     @property
     def is_authenticated(self):
+        print(self.member, self.member.status)
         return self.member and self.member.status == 'Member'
 
     @property

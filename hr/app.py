@@ -5,6 +5,7 @@ from prest import Prest
 
 from hr.shared import db
 from hr.models import User, Member, APIKey
+from hr.reddit_oauth import RedditOAuth
 
 
 app = Flask(__name__)
@@ -16,6 +17,11 @@ prest = Prest(
     client_id=app.config['EVE_OAUTH_CLIENT_ID'],
     client_secret=app.config['EVE_OAUTH_SECRET'],
     callback_url=app.config['EVE_OAUTH_CALLBACK']
+)
+reddit_oauth = RedditOAuth(
+    app.config['REDDIT_OAUTH_CLIENT_ID'],
+    app.config['REDDIT_OAUTH_SECRET'],
+    app.config['REDDIT_OAUTH_CALLBACK']
 )
 db.app = app
 db.init_app(app)
@@ -124,10 +130,10 @@ def eve_oauth_callback():
         return redirect(url_for('join'))
     character_affiliation = xmlapi.eve.CharacterAffiliation(ids=character_info['CharacterID'])
     corporation = character_affiliation.characters[0].corporationName
+    print('New character "{}" in corp "{}"'.format(character_name, corporation))
     user = User(character_name)
     db.session.add(user)
-    db.session.commit()
-    db.session.add(Member(user.id, character_name, 'Member'))
+    db.session.add(Member(character_name, 'Member' if corporation == app.config['CORPORATION'] else 'New'))
     db.session.commit()
     login_user(user)
     if corporation == app.config['CORPORATION']:
@@ -160,6 +166,11 @@ def join():
         flash('Your application is in - someone will take a look soon', 'success')
         return redirect(url_for('join'))
     return render_template('join.html', character_name=character_name)
+
+
+@app.route('/me')
+def personal():
+    return render_template('personal.html')
 
 
 @app.route('/logout')
