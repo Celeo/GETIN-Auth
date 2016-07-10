@@ -6,7 +6,7 @@
 
 <h5 class="pad-top-heavy">
     Right now, you're <strong>not</strong> in <strong>{{ config['CORPORATION'] }}</strong>.<br><br>
-{% if not current_user.member %}
+{% if current_user.member.status == 'Guest' %}
     If you want to fix that, create a new API key with the button,
     copy it in below, and hit the Apply button.
 </h5>

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <style>
         div.card-panel p {
             font-size: 1.2em;
@@ -37,7 +37,7 @@
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('index') }}">My info</a></li>
                         {% if current_user.member.status == 'Recruiter' or current_user.admin %}
-                            <li><a href="{{ url_for('Members') }}">Members</a></li>
+                            <li><a href="{{ url_for('membership') }}">Members</a></li>
                         {% endif %}
                     {% endif %}
                     {% if current_user.admin %}
@@ -73,10 +73,10 @@
 </main>
 
 <footer class="page-footer footer-copyright orange lighten-2">
-    <div class="container">
-        &copy; 2016 <a href="https://celeodor.com"><i>Celeodor</i></a>,
-        <a href="https://git.celeodor.com/Celeo/GETIN-HR">source</a>,
-        contact: {{ config['CONTACT_EMAIL'] }}
+    <div class="container center-align">
+        &copy; 2016 <a href="https://celeodor.com"><i>Celeodor</i></a> |
+        <a href="https://git.celeodor.com/Celeo/GETIN-HR">source</a> |
+        <a href="mailto:{{ config['CONTACT_EMAIL'] }}?Subject=GETIN-HR">contact</a>
     </div>
 </footer>
 

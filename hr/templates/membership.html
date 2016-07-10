@@ -12,17 +12,17 @@
 <div class="row pad-top">
     <div class="col s12">
         <div>
-            {% if not applications %}
+            {% if not members %}
                 <p>
                     No applications found. Use the red button above to add some.
                 </p>
             {% else %}
                 <ul class="collapsible popout" data-collapsible="accordion">
-                    {% for app in applications %}
+                    {% for member in members %}
                         <li>
                             <div class="collapsible-header{% if loop.index == 1 %} active{% endif %} clearfix">
-                                <span class="left">{{ app.character_name }}</span>
-                                <span class="right">{{ app.status }}</span>
+                                <span class="left">{{ member.character_name }}</span>
+                                <span class="right">{{ member.status }}</span>
                             </div>
                             <div class="collapsible-body">
                                 <table class="orange lighten-5">
@@ -32,20 +32,21 @@
                                             <th>Timestamp</th>
                                             <th>Status</th>
                                             <th>Alts</th>
-                                            <th>Notes</th>
-                                            <th>API key</th>
-                                            <th>Edit</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>{{ app.reddit }}</td>
-                                            <td>{{ app.applied_date }}</td>
-                                            <td>{{ app.status }}</td>
-                                            <td>{{ app.alts }}</td>
-                                            <td>{{ app.notes }}</td>
-                                            <td>{{ app.api_key }} - {{ app.api_code }}</td>
-                                        <td><a href="{{ url_for('edit', id=app.id) }}">Edit</a></td>
+                                            <td>{{ member.reddit }}</td>
+                                            <td>{{ member.date }}</td>
+                                            <td>{{ member.status }}</td>
+                                            <td>{{ member.alts }}</td>
+                                            <td class="small">
+                                                <a href="{{ url_for('details', id=member.id) }}"
+                                                    class="btn waves-effect waves-light btn-small orange">
+                                                    Details
+                                                </a>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>

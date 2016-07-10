@@ -43,3 +43,10 @@ h2 > small {
 code {
     color: red;
 }
+.btn-small {
+    height: 24px;
+    line-height: 24px;
+}
+td.small {
+    width: 15%;
+}

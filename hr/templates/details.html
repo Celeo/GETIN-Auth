@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+<script>
+    $(document).ready(function() {
+        $('.modal-trigger').leanModal();
+    });
+</script>
+{% endblock head %}
+
+{% block content %}
+<h2>Member details page - {{ member.character_name }}</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Setting</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Character name</td>
+            <td>{{ member.character_name }}</td>
+        </tr>
+        <tr>
+            <td>Current corporation</td>
+            <td>{{ member.corporation }}</td>
+        </tr>
+        <tr>
+            <td>Reddit username</td>
+            <td>
+                {% if member.reddit %}
+                    <a href="https://reddit.com/u/{{ member.reddit }}" target="_blank">{{ member.reddit }}</a>
+                {% else %}
+                    <span class="red">No linked account</span>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>Creation date</td>
+            <td>{{ member.date }}</td>
+        </tr>
+        <tr>
+            <td>Membership status</td>
+            <td>{{ member.status }}</td>
+        </tr>
+        <tr>
+            <td>Alts</td>
+            <td>{{ member.alts }}</td>
+        </tr>
+        <tr>
+            <td>API key(s)</td>
+            <td>
+                <a class="waves-effect waves-light btn modal-trigger orange" href="#modalAPI">Edit</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div id="modalAPI" class="modal bottom-sheet">
+    <div class="modal-content">
+        <h4>API keys</h4>
+        <p>
+            Enter the key or keys, one per line, in the form <code>keyID - vCode</code>.
+        </p>
+        <div class="row">
+            <form action="{{ url_for('details', id=member.id) }}" method="POST" class="col s12" id="formKeys">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <label for="keys">Key(s)</label>
+                        <textarea name="keys" class="materialize-textarea" required>{{ member.get_keys() }}</textarea>
+                        <input type="text" name="section" value="keys" hidden>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
+        <button class="waves-effect waves-light btn-flat orange" type="submit" form="formKeys">Save</button>
+    </div>
+</div>
+{% endblock content %}

@@ -13,14 +13,14 @@
 {% if current_user.member.api_keys.count() == 0 %}
 <div class="card-panel red lighten-1 flashed">
     <p>
-        You need to have at least 1 API Key on file.
+        You need to have at least 1 API Key on file
     </p>
 </div>
 {% endif %}
 {% if not current_user.member.reddit %}
 <div class="card-panel red lighten-1 flashed">
     <p>
-        You need to link your reddit account.
+        You need to link your reddit account
     </p>
 </div>
 {% endif %}
@@ -80,7 +80,10 @@
         <p>
             Enter your key or keys, one per line, in the form <code>keyID - vCode</code>.<br>
             If your keyID was <code>10000</code> and vCode <code>aaaaaaaaa</code>, then you'd enter
-            <code>10000 - aaaaaaaaa</code> on the first line.
+            <code>10000 - aaaaaaaaa</code> on the first line.<br>
+            If you need to create a new key, use
+            <a href="https://community.eveonline.com/support/api-key/CreatePredefined?accessMask={{ config['API_KEY_MASK'] }}" target="_blank">
+            this link</a> and be sure to check <i>No Expiry</i>.
         </p>
         <div class="row">
             <form action="{{ url_for('index') }}" method="POST" class="col s12" id="formKeys">

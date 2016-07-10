@@ -15,7 +15,7 @@ class User(db.Model):
 
     @property
     def is_authenticated(self):
-        return self.member and self.member.status == 'Member'
+        return self.member and self.member.status in ['Member', 'Accepted', 'Recruiter']
 
     @property
     def is_active(self):
