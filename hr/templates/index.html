@@ -4,7 +4,7 @@
 {% block content %}
 <div class="clearfix">
     <h2 class="left">Members and Applicants</h2>
-    <a class="right btn-floating btn-large waves-effect waves-light orange" href="{{ url_for('add_app') }}">
+    <a class="right btn-floating btn-large waves-effect waves-light orange" href="{{ url_for('add_member') }}">
         <i class="material-icons">add</i>
     </a>
 </div>
@@ -34,6 +34,7 @@
                                             <th>Alts</th>
                                             <th>Notes</th>
                                             <th>API key</th>
+                                            <th>Edit</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -44,6 +45,7 @@
                                             <td>{{ app.alts }}</td>
                                             <td>{{ app.notes }}</td>
                                             <td>{{ app.api_key }} - {{ app.api_code }}</td>
+                                        <td><a href="{{ url_for('edit', id=app.id) }}">Edit</a></td>
                                         </tr>
                                     </tbody>
                                 </table>

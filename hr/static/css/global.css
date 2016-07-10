@@ -16,6 +16,9 @@
 .pad-top {
     margin-top: 20px;
 }
+.pad-top-heavy {
+    margin-top: 60px;
+}
 h2 > small {
     font-size: 2rem;
     color: rgba(107, 107, 107, 0.8);
@@ -25,4 +28,7 @@ h2 > small {
 }
 .no-pad-bottom {
     margin-bottom: 0;
+}
+.container > .row {
+    margin-top: 20px;
 }

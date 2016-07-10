@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<h3>Hey, {{ character_name }}</h3>
+
+<h5 class="pad-top-heavy">
+    Right now, you're <strong>not</strong> in <strong>{{ config['CORPORATION'] }}</strong>.<br><br>
+{% if not current_user.member %}
+    If you want to fix that, create a new API key with the button,
+    copy it in below, and hit the Apply button.
+</h5>
+
+<br>
+<div class="card-panel">
+    <div class="row">
+        <div class="col s12">
+            <a class="btn waves-effect waves-light orange"
+                href="https://community.eveonline.com/support/api-key/CreatePredefined?accessMask={{ config['API_KEY_MASK'] }}"
+                target="_blank">Create key
+                <i class="material-icons right">send</i>
+            </a>
+        </div>
+    </div>
+    <form action="{{ url_for('join') }}" method="POST">
+        <div class="row">
+            <div class="col s6 input-field">
+                <label for="code">API key</label>
+                <input type="text" name="key" required>
+            </div>
+            <div class="col s6 input-field">
+                <label for="code">API code</label>
+                <input type="text" name="code" required>
+            </div>
+        </div>
+            <button class="btn waves-effect waves-light orange">Apply
+                <i class="material-icons right">send</i>
+            </button>
+    </form>
+</div>
+{% else %}
+You've put in an application, and it's status is <strong>{{ current_user.member.status }}</strong>.
+</h5>
+{% endif %}
+{% endblock content %}

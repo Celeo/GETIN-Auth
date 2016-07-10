@@ -12,7 +12,7 @@
 {% block content %}
 <h2>Add a member or applicant</h2>
 <div class="card-panel">
-    <form action="{{ url_for('add_app') }}" method="POST" class="col s12">
+    <form action="{{ url_for('add_member') }}" method="POST" class="col s12">
         <div class="row">
             <div class="input-field col s4">
                 <label for="name">Character name</label>
@@ -24,10 +24,10 @@
             </div>
             <div class="input-field col s4">
                 <select name="status">
-                    <option value="1">Applicant</option>
-                    <option value="2">Member</option>
-                    <option value="3">Rejected</option>
-                    <option value="4">Previous member</option>
+                    <option value="New"></option>
+                    <option value="Ready"></option>
+                    <option value="Accepted"></option>
+                    <option value="Denied"></option>
                 </select>
                 <label for="status">Status</label>
             </div>

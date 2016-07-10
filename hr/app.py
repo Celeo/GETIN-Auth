@@ -1,25 +1,27 @@
-from flask import Flask, render_template, redirect, request, url_for, flash
+from flask import Flask, render_template, redirect, request, url_for, flash, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import eveapi
 from prest import Prest
 
 from hr.shared import db
-from hr.models import User, Application, APIKey
+from hr.models import User, Member, APIKey
 
 
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
+eveapi.set_user_agent('GETIN HR app ({})'.format(app.config['CONTACT_EMAIL']))
 xmlapi = eveapi.EVEAPIConnection()
 prest = Prest(
+    User_Agent='GETIN HR app ({})'.format(app.config['CONTACT_EMAIL']),
     client_id=app.config['EVE_OAUTH_CLIENT_ID'],
     client_secret=app.config['EVE_OAUTH_SECRET'],
-    callback_url=app.config['EVE_OAUTH_CALLBACK'],
-    scope=''
+    callback_url=app.config['EVE_OAUTH_CALLBACK']
 )
 db.app = app
 db.init_app(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'eve_oauth_prompt'
+login_manager.login_message = ''
+login_manager.login_view = 'check_access'
 
 
 @login_manager.user_loader
@@ -30,13 +32,13 @@ def load_user(user_id):
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
-    applications = Application.query.filter_by(hidden=False).all()
-    return render_template('index.html', applications=applications)
+    members = Member.query.filter_by(hidden=False).all()
+    return render_template('index.html', members=members)
 
 
-@app.route('/app/add', methods=['GET', 'POST'])
+@app.route('/members/add', methods=['GET', 'POST'])
 @login_required
-def add_app():
+def add_member():
     if request.method == 'POST':
         name = request.form.get('name')
         reddit = request.form.get('reddit')
@@ -45,13 +47,13 @@ def add_app():
         apicode = request.form.get('apicode')
         alts = request.form.get('alts')
         notes = request.form.get('notes')
-        app = Application(name, reddit, alts, status, notes)
-        db.session.add(app)
+        member = Member(name, reddit, alts, status, notes)
+        db.session.add(member)
         db.session.commit()
         db.session.add(APIKey(app.id, apikey, apicode))
         db.session.commit()
         flash('Character added', 'success')
-    return render_template('add_app.html')
+    return render_template('add_member.html')
 
 
 @app.route('/admin', methods=['GET', 'POSt'])
@@ -80,26 +82,84 @@ def revoke_access(name):
     return redirect(url_for('admin'))
 
 
-@app.route('/eve_oauth/prompt')
-def eve_oauth_prompt():
+@app.route('/edit/<int:id>', methods=['GET', 'POST'])
+def edit(id):
+    member = Member.query.get(id)
+    if not member:
+        flash('Unknown id', 'error')
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        # TODO
+        pass
+    return render_template('edit.html')
+
+
+@app.route('/check_access')
+def check_access():
+    if current_user and not current_user.is_authenticated and not current_user.is_anonymous:
+        return redirect(url_for('join'))
+    return redirect(url_for('login'))
+
+
+@app.route('/login')
+def login():
     url = prest.get_authorize_url()
-    return render_template('eve_oauth_prompt.html', url=url)
+    return render_template('login.html', url=url)
 
 
-@app.route('/eve_oauth/callback')
+@app.route('/eve/callback')
 def eve_oauth_callback():
     if 'error' in request.path:
         flash('There was an error in EVE\'s response', 'error')
-        return url_for('eve_oauth_prompt')
+        return url_for('login')
     auth = prest.authenticate(request.args['code'])
-    character_name = auth.whoami()['CharacterName']
+    character_info = auth.whoami()
+    character_name = character_info['CharacterName']
     user = User.query.filter_by(name=character_name).first()
-    if not user:
-        flash('You, {}, are not whitelisted to use this app'.format(character_name), 'error')
-        return redirect(url_for('eve_oauth_prompt'))
+    if user:
+        login_user(user)
+        if user.member:
+            flash('Logged in', 'success')
+            return redirect(url_for('index'))
+        return redirect(url_for('join'))
+    character_affiliation = xmlapi.eve.CharacterAffiliation(ids=character_info['CharacterID'])
+    corporation = character_affiliation.characters[0].corporationName
+    user = User(character_name)
+    db.session.add(user)
+    db.session.commit()
+    db.session.add(Member(user.id, character_name, 'Member'))
+    db.session.commit()
     login_user(user)
-    flash('Logged in', 'success')
-    return redirect(url_for('index'))
+    if corporation == app.config['CORPORATION']:
+        flash('Welcome to HR', 'success')
+        return redirect(url_for('index'))
+    print('{} is in corp {} instead of {}'.format(character_name, corporation, app.config['CORPORATION']))
+    return redirect(url_for('join'))
+
+
+@app.route('/join', methods=['GET', 'POST'])
+def join():
+    character_name = session.get('character_name') or current_user.name if not current_user.is_anonymous else None
+    if not character_name:
+        flash('Well, something went wrong. Try again?', 'error')
+        return redirect(url_for('login'))
+    member = current_user.member
+    if request.method == 'POST':
+        key = request.form['key']
+        code = request.form['code']
+        auth = xmlapi.auth(keyID=key, vCode=code)
+        result = auth.account.APIKeyInfo()
+        if not result.key.accessMask == app.config['API_KEY_MASK']:
+            flash('Wrong key mask - you need {}'.format(app.config['API_KEY_MASK']), 'error')
+            return redirect(url_for('join'))
+        member = Member(character_name, 'New')
+        db.session.add(member)
+        db.session.commit()
+        db.session.add(APIKey(member.id, key, code))
+        db.session.commit()
+        flash('Your application is in - someone will take a look soon', 'success')
+        return redirect(url_for('join'))
+    return render_template('join.html', character_name=character_name)
 
 
 @app.route('/logout')

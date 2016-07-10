@@ -15,7 +15,7 @@ class User(db.Model):
 
     @property
     def is_authenticated(self):
-        return True
+        return self.member and self.member.status == 'Member'
 
     @property
     def is_active(self):
@@ -28,24 +28,29 @@ class User(db.Model):
     def get_id(self):
         return str(self.id)
 
+    @property
+    def member(self):
+        return Member.query.filter_by(character_name=self.name).first()
 
-class Application(db.Model):
+
+class Member(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     character_name = db.Column(db.String)
+    corporation = db.Column(db.String)
     reddit = db.Column(db.String)
-    applied_date = db.Column(db.DateTime)
+    date = db.Column(db.DateTime)
     status = db.Column(db.String)
     alts = db.Column(db.String)
     notes = db.Column(db.String)
     hidden = db.Column(db.Boolean)
-    api_keys = db.relationship('APIKey', backref='application', lazy='dynamic')
+    api_keys = db.relationship('APIKey', backref='Member', lazy='dynamic')
 
-    def __init__(self, name, reddit, status='Applicant', alts=None, notes=None):
+    def __init__(self, name, status='', reddit=None, alts=None, notes=None):
         self.character_name = name
-        self.reddit = reddit
-        self.applied_date = datetime.utcnow()
+        self.date = datetime.utcnow()
         self.status = status
+        self.reddit = reddit
         self.alts = alts
         self.notes = notes
         self.hidden = False
@@ -65,18 +70,18 @@ class Application(db.Model):
             return ''
 
     def __str__(self):
-        return '<Application-{}>'.format(self.character_name)
+        return '<Member-{}>'.format(self.character_name)
 
 
 class APIKey(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    application_id = db.Column(db.Integer, db.ForeignKey('application.id'))
+    member_id = db.Column(db.Integer, db.ForeignKey('member.id'))
     key = db.Column(db.String)
     code = db.Column(db.String)
 
-    def __init__(self, application_id, key, code):
-        self.application_id = application_id
+    def __init__(self, member_id, key, code):
+        self.member_id = member_id
         self.key = key
         self.code = code
 
