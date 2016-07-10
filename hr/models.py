@@ -32,6 +32,9 @@ class User(db.Model):
     def member(self):
         return Member.query.filter_by(character_name=self.name).first()
 
+    def __str__(self):
+        return '<User-{}>'.format(self.name)
+
 
 class Member(db.Model):
 
@@ -46,7 +49,7 @@ class Member(db.Model):
     hidden = db.Column(db.Boolean)
     api_keys = db.relationship('APIKey', backref='Member', lazy='dynamic')
 
-    def __init__(self, character_name, corporation, status='', reddit=None, alts=None, notes=None):
+    def __init__(self, character_name, corporation, status='New', reddit=None, alts=None, notes=None):
         self.character_name = character_name
         self.corporation = corporation
         self.date = datetime.utcnow()
@@ -65,6 +68,10 @@ class Member(db.Model):
 
     def get_keys(self):
         return '\n'.join(['{} - {}'.format(key.key, key.code) for key in self.api_keys.all()])
+
+    @property
+    def user(self):
+        return User.query.filter_by(name=self.character_name).first()
 
     def __str__(self):
         return '<Member-{}>'.format(self.character_name)

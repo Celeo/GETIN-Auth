@@ -5,10 +5,9 @@
 <h3>Hey, {{ character_name }}</h3>
 
 <h5 class="pad-top-heavy">
-    Right now, you're <strong>not</strong> in <strong>{{ config['CORPORATION'] }}</strong>.<br><br>
 {% if current_user.member.status == 'Guest' %}
-    If you want to fix that, create a new API key with the button,
-    copy it in below, and hit the Apply button.
+    If you want to join, create a new API key with the button,
+    set it to not expire, copy it in below, and hit the Apply button.
 </h5>
 
 <br>

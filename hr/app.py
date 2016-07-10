@@ -83,8 +83,16 @@ def validate_keys(keys, member):
 def membership():
     if not current_user.member.status == 'Recruiter' and not current_user.admin:
         return redirect(url_for('index'))
-    members = Member.query.filter_by(hidden=False).all()
-    return render_template('membership.html', members=members)
+    query = Member.query
+    show_hidden = bool(request.args.get('show_hidden', 0))
+    show_applications = bool(request.args.get('show_applications', 0))
+    if not show_hidden:
+        query = query.filter_by(hidden=False)
+    members = query.all()
+    if show_applications:
+        members = [member for member in members if member.status in ['Guest', 'New', 'Ready']]
+    return render_template('membership.html',
+        members=members, show_hidden=show_hidden, show_applications=show_applications)
 
 
 @app.route('/members/add', methods=['GET', 'POST'])
@@ -101,10 +109,10 @@ def add_member():
             return redirect(url_for('add_member'))
         alts = request.form.get('alts')
         notes = request.form.get('notes')
-        member = Member(name, reddit, alts, status, notes)
+        member = Member(name, get_corp_for_name(name), status, reddit, alts, notes)
         db.session.add(member)
         db.session.commit()
-        db.session.add(APIKey(app.id, apikey, apicode))
+        db.session.add(APIKey(member.id, apikey, apicode))
         db.session.commit()
         flash('Character added', 'success')
     return render_template('add_member.html')
@@ -119,14 +127,18 @@ def admin():
     if request.method == 'POST':
         app.logger.debug('POST on admin by {}'.format(current_user.name))
         name = request.form['name']
-        user = User.query.filter_by(name=name).first()
-        if not user:
-            db.session.add(Member(name, app.config['CORPORATION'], 'Recruiter'))
+        member = Member.query.filter_by(character_name=name).first()
+        if not member:
+            flash('Unknown member', 'error')
+            return redirect(url_for('admin'))
+        member.status = 'Recruiter'
         db.session.commit()
-        flash('{} added as a recruiter'.format(name), 'success')
+        flash(member.character_name + ' promoted to recruiter', 'success')
         return redirect(url_for('admin'))
     admins = ', '.join([user.name for user in User.query.filter_by(admin=True).all()])
-    recruiters = Member.query.fitler_by(status='Recruiter').all()
+    recruiters = Member.query.filter_by(status='Recruiter').all()
+    recruiters.extend([user.member for user in User.query.filter_by(admin=True).all()])
+    recruiters = sorted(set(recruiters), key=lambda x: x.character_name)
     return render_template('admin.html', admins=admins, recruiters=recruiters)
 
 
@@ -166,6 +178,35 @@ def details(id):
     return render_template('details.html', member=member)
 
 
+@app.route('/visibility/<int:id>/<action>')
+@login_required
+def visibility(id, action):
+    if not current_user.member.status == 'Recruiter' and not current_user.admin:
+        app.logger.debug('Visibility access denied to {}'.format(current_user.name))
+        return redirect(url_for('index'))
+    member = Member.query.get(id)
+    if not member:
+        flash('Unknown id', 'error')
+        app.logger.error('Unknown id on details for id {} by {}'.format(id, current_user.name))
+        return redirect(url_for('membership'))
+    member.hidden = action == 'hide'
+    db.session.commit()
+    flash('"{}" {}'.format(member.character_name, 'hidden' if member.hidden else 'made visible'), 'success')
+    return redirect(url_for('details', id=id))
+
+
+@app.route('/delete/<int:id>')
+@login_required
+def delete(id):
+    if not current_user.admin:
+        app.logger.debug('Delete access denied to {}'.format(current_user.name))
+        return redirect(url_for('details', id=id))
+    Member.query.filter_by(id=id).delete()
+    db.session.commit()
+    flash('Member deleted', 'success')
+    return redirect(url_for('membership'))
+
+
 @app.route('/join', methods=['GET', 'POST'])
 def join():
     if current_user.member.corporation == app.config['CORPORATION']:
@@ -194,6 +235,25 @@ def join():
     return render_template('join.html', character_name=character_name)
 
 
+@app.route('/import_members')
+@login_required
+def import_members():
+    if not current_user.admin:
+        app.logger.debug('Admin access denied to {}'.format(current_user.name))
+        return redirect(url_for('index'))
+    auth = xmlapi.auth(keyID=app.config['CORP_MEMBER_API_KEY'], vCode=app.config['CORP_MEMBER_API_CODE'])
+    members = auth.corp.MemberTracking().members
+    for member in members:
+        db_model = Member.query.filter_by(character_name=member.name).first()
+        if not db_model:
+            db.session.add(Member(member.name, app.config['CORPORATION'], 'Accepted'))
+        elif db_model.status not in ['Accepted', 'Recruiter']:
+            db_model.status = 'Accepted'
+    db.session.commit()
+    flash('Members imported', 'success')
+    return redirect(url_for('admin'))
+
+
 @app.route('/check_access')
 def check_access():
     if current_user and not current_user.is_anonymous:
@@ -214,21 +274,30 @@ def eve_oauth_callback():
         app.logger.error('Error in EVE SSO callback: ' + request.url)
         flash('There was an error in EVE\'s response', 'error')
         return url_for('login')
-    auth = prest.authenticate(request.args['code'])
+    try:
+        auth = prest.authenticate(request.args['code'])
+    except Exception as e:
+        app.logger.error('CREST signing error: ' + str(e))
+        flash('There was an authentication error signing you in.', 'error')
+        return redirect(url_for('login'))
     character_info = auth.whoami()
     character_name = character_info['CharacterName']
     user = User.query.filter_by(name=character_name).first()
     if user:
+        if not user.member:
+            app.logger.info('Created a Member object for user {}'.format(user.name))
+            corporation = get_corp_for_name(user.name)
+            db.session.add(Member(user.name, corporation, 'Accepted' if corporation == app.config['CORPORATION'] else 'Guest'))
+            db.session.commit()
         login_user(user)
         app.logger.debug('{} logged in with EVE SSO'.format(current_user.name))
         if user.member:
             flash('Logged in', 'success')
             return redirect(url_for('index'))
         return redirect(url_for('join'))
-    character_affiliation = xmlapi.eve.CharacterAffiliation(ids=character_info['CharacterID'])
-    corporation = character_affiliation.characters[0].corporationName
     user = User(character_name)
     db.session.add(user)
+    corporation = get_corp_for_name(character_name)
     db.session.add(Member(character_name, corporation, 'Accepted' if corporation == app.config['CORPORATION'] else 'Guest'))
     db.session.commit()
     login_user(user)
@@ -251,7 +320,7 @@ def reddit_oauth_callback():
 
 @app.route('/logout')
 def logout():
-    app.logger.debug('{} logged out'.format(current_user.name))
+    app.logger.debug('{} logged out'.format(current_user.name if not current_user.is_anonymous else 'unknown user'))
     logout_user()
     return redirect(url_for('index'))
 
@@ -270,3 +339,11 @@ def error_500(e):
         request.url, current_user.name if not current_user.is_anonymous else 'unknown user', str(e))
     )
     return render_template('error_500.html')
+
+
+def get_corp_for_name(name):
+    return get_corp_for_id(xmlapi.eve.CharacterID(names=name).characters[0].characterID)
+
+
+def get_corp_for_id(id):
+    return xmlapi.eve.CharacterAffiliation(ids=id).characters[0].corporationName

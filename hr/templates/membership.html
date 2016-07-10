@@ -13,9 +13,11 @@
     <div class="col s12">
         <div>
             {% if not members %}
-                <p>
-                    No applications found. Use the red button above to add some.
-                </p>
+                {% if show_applications %}
+                    <p>No new applications.</p>
+                {% else %}
+                    <p>No members found.</p>
+                {% endif %}
             {% else %}
                 <ul class="collapsible popout" data-collapsible="accordion">
                     {% for member in members %}
@@ -55,6 +57,22 @@
                     {% endfor %}
                 </ul>
             {% endif %}
+            <a href="{{ url_for('membership') }}{% if not show_hidden %}?show_hidden=1{% endif %}"
+                class="btn waves-effect waves-light btn-small orange">
+                {% if show_hidden %}
+                    Normal view
+                {% else %}
+                    Show hidden members
+                {% endif %}
+            </a>
+            <a href="{{ url_for('membership') }}{% if not show_applications %}?show_applications=1{% endif %}"
+                class="btn waves-effect waves-light btn-small orange">
+                {% if show_applications %}
+                    Normal view
+                {% else %}
+                    Show applications only
+                {% endif %}
+            </a>
         </div>
     </div>
 </div>

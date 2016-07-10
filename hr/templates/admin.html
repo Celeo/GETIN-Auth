@@ -14,10 +14,15 @@
             </tr>
         </thead>
         <tbody>
-            {% for user in recruiters %}
+            {% for member in recruiters %}
                 <tr>
-                    <td>{{ user.name }}</td>
-                    <td><a href="{{ url_for('revoke_access', name=user.name) }}" class="btn waves-efect waves-light red">Revoke</a></td>
+                    <td>{{ member.character_name }}</td>
+                    {% if member.user.admin %}
+                        <td>This user is an admin</td>
+                    {% else %}
+                        <td><a href="{{ url_for('revoke_access', name=member.character_name) }}"
+                            class="btn waves-efect waves-light red">Revoke</a></td>
+                    {% endif %}
                 </tr>
             {% endfor %}
         </tbody>
@@ -39,5 +44,18 @@
             </button>
         </div>
     </form>
+</div>
+
+<div class="card-panel">
+    <h4>Import all corp members</h4>
+    <p>
+        This will import all corp members from the EVE API and create
+        memberships items the database for them. All members will automatically
+        be marked as "Accepted" when imported this way.<br>
+        Be patient when you click this.<br><br>
+    </p>
+    <a class="btn waves-effect waves-light orange" href="{{ url_for('import_members') }}">Import
+        <i class="material-icons right">send</i>
+    </a>
 </div>
 {% endblock content %}
