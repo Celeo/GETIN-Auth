@@ -91,6 +91,7 @@ def membership():
     members = query.all()
     if show_applications:
         members = [member for member in members if member.status in ['Guest', 'New', 'Ready']]
+    members = sorted(members, key=lambda x: x.character_name)
     return render_template('membership.html',
         members=members, show_hidden=show_hidden, show_applications=show_applications)
 
