@@ -415,13 +415,19 @@ def import_members():
         return redirect(url_for('index'))
     auth = xmlapi.auth(keyID=app.config['CORP_MEMBER_API_KEY'], vCode=app.config['CORP_MEMBER_API_CODE'])
     members = auth.corp.MemberTracking().members
-    # TODO if the member is in the database but not in the API response, mark them as having left the corp
+    checked_members = []
     for member in members:
         db_model = Member.query.filter_by(character_name=member.name).first()
         if not db_model:
             db.session.add(Member(member.name, app.config['CORPORATION'], 'Accepted'))
         elif db_model.status not in ['Accepted', 'Recruiter']:
             db_model.status = 'Accepted'
+        checked_members.append(member.name)
+    for member in Member.query.all():
+        if member not in checked_members:
+            app.logger.warning(member.name + ' has left the corporation')
+            member.status = 'Left'
+            member.hidden = True
     db.session.commit()
     flash('Members imported', 'success')
     return redirect(url_for('admin'))
