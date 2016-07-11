@@ -1,6 +1,18 @@
 {% extends 'base.html' %}
 
 
+{% block head %}
+<script>
+    $(document).ready(function() {
+        $('#import').on('click', function() {
+            $(this).addClass('disabled');
+            $(this).text('Importing ...');
+            window.location.href = "{{ url_for('import_members') }}";
+        });
+    });
+</script>
+{% endblock head %}
+
 {% block content %}
 <h2>Admin<small> this page is locked to <strong>{{ admins }}</strong></small></h2>
 
@@ -51,10 +63,9 @@
     <p>
         This will import all corp members from the EVE API and create
         memberships items the database for them. All members will automatically
-        be marked as "Accepted" when imported this way.<br>
-        Be patient when you click this.<br><br>
+        be marked as "Accepted" when imported this way.<br><br>
     </p>
-    <a class="btn waves-effect waves-light orange" href="{{ url_for('import_members') }}">Import
+    <a class="btn waves-effect waves-light orange" id="import" href="#">Import
         <i class="material-icons right">send</i>
     </a>
 </div>

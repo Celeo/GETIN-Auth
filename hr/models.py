@@ -44,18 +44,18 @@ class Member(db.Model):
     reddit = db.Column(db.String)
     date = db.Column(db.DateTime)
     status = db.Column(db.String)
-    alts = db.Column(db.String)
+    main = db.Column(db.String)
     notes = db.Column(db.String)
     hidden = db.Column(db.Boolean)
     api_keys = db.relationship('APIKey', backref='Member', lazy='dynamic')
 
-    def __init__(self, character_name, corporation, status='New', reddit=None, alts=None, notes=None):
+    def __init__(self, character_name, corporation, status='New', reddit=None, main=None, notes=None):
         self.character_name = character_name
         self.corporation = corporation
         self.date = datetime.utcnow()
         self.status = status
         self.reddit = reddit
-        self.alts = alts
+        self.main = main or character_name
         self.notes = notes
         self.hidden = False
 

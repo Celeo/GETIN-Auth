@@ -10,7 +10,8 @@
 {% endblock head %}
 
 {% block content %}
-<h2>Add a member or applicant</h2>
+<h2>Add an applicant</h2>
+<h4>A player can apply to the corp themselves; this page is a secondary method of adding them</h4>
 <div class="card-panel">
     <form action="{{ url_for('add_member') }}" method="POST" class="col s12">
         <div class="row">
@@ -21,9 +22,8 @@
             <div class="input-field col s4">
                 <select name="status">
                     <option value="New">New</option>
-                    <option value="Ready">Ready</option>
-                    <option value="Accepted">Accepted</option>
-                    <option value="Denied">Denied</option>
+                    <option value="Ready to be interviewed">Ready to be interviewed</option>
+                    <option value="Ready to be accepted">Ready to be accepted</option>
                 </select>
                 <label for="status">Status</label>
             </div>

@@ -11,6 +11,22 @@
 
 <div class="row pad-top">
     <div class="col s12">
+        <a href="{{ url_for('membership') }}{% if not show_hidden %}?show_hidden=1{% endif %}"
+            class="btn waves-effect waves-light btn-small orange">
+            {% if show_hidden %}
+                Normal view
+            {% else %}
+                Show hidden members
+            {% endif %}
+        </a>
+        <a href="{{ url_for('membership') }}{% if not show_applications %}?show_applications=1{% endif %}"
+            class="btn waves-effect waves-light btn-small orange">
+            {% if show_applications %}
+                Normal view
+            {% else %}
+                Show applications only
+            {% endif %}
+        </a>
         <div>
             {% if not members %}
                 {% if show_applications %}
@@ -24,7 +40,14 @@
                         <li>
                             <div class="collapsible-header{% if loop.index == 1 %} active{% endif %} clearfix">
                                 <span class="left">{{ member.character_name }}</span>
-                                <span class="right">{{ member.status }}</span>
+                                <div class="right">
+                                    {% if member.hidden %}
+                                        <div class="chip">Hidden</div>
+                                    {% endif %}
+                                    <span class="right">
+                                        {{ member.status }}
+                                    </span>
+                                </div>
                             </div>
                             <div class="collapsible-body">
                                 <table class="orange lighten-5">
@@ -33,7 +56,7 @@
                                             <th>Reddit</th>
                                             <th>Timestamp</th>
                                             <th>Status</th>
-                                            <th>Alts</th>
+                                            <th>Main</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -42,7 +65,7 @@
                                             <td>{{ member.reddit }}</td>
                                             <td>{{ member.date }}</td>
                                             <td>{{ member.status }}</td>
-                                            <td>{{ member.alts }}</td>
+                                            <td>{{ member.main }}</td>
                                             <td class="small">
                                                 <a href="{{ url_for('details', id=member.id) }}"
                                                     class="btn waves-effect waves-light btn-small orange">
@@ -57,22 +80,6 @@
                     {% endfor %}
                 </ul>
             {% endif %}
-            <a href="{{ url_for('membership') }}{% if not show_hidden %}?show_hidden=1{% endif %}"
-                class="btn waves-effect waves-light btn-small orange">
-                {% if show_hidden %}
-                    Normal view
-                {% else %}
-                    Show hidden members
-                {% endif %}
-            </a>
-            <a href="{{ url_for('membership') }}{% if not show_applications %}?show_applications=1{% endif %}"
-                class="btn waves-effect waves-light btn-small orange">
-                {% if show_applications %}
-                    Normal view
-                {% else %}
-                    Show applications only
-                {% endif %}
-            </a>
         </div>
     </div>
 </div>

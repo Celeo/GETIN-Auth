@@ -90,7 +90,8 @@ def membership():
         query = query.filter_by(hidden=False)
     members = query.all()
     if show_applications:
-        members = [member for member in members if member.status in ['Guest', 'New', 'Ready']]
+        members = [member for member in members if member.status in
+            ['Guest', 'New', 'Ready to be interviewed', 'Ready to be accepted']]
     members = sorted(members, key=lambda x: x.character_name)
     return render_template('membership.html',
         members=members, show_hidden=show_hidden, show_applications=show_applications)
@@ -116,7 +117,7 @@ def add_member():
         db.session.add(APIKey(member.id, apikey, apicode))
         db.session.commit()
         flash('Character added', 'success')
-    return render_template('add_member.html')
+    return render_template('add_applicant.html')
 
 
 @app.route('/admin', methods=['GET', 'POSt'])
@@ -173,6 +174,10 @@ def details(id):
             member.status = request.form['status']
             db.session.commit()
             flash('Status changed', 'success')
+        elif request.form['section'] == 'main':
+            member.main = request.form['main']
+            db.session.commit()
+            flash('Main character changed', 'success')
         else:
             flash('Unknown form submission', 'error')
         return redirect(url_for('details', id=id))
@@ -222,18 +227,21 @@ def join():
             key = request.form['key']
             code = request.form['code']
             auth = xmlapi.auth(keyID=key, vCode=code)
+            main = request.form.get('main')
             result = auth.account.APIKeyInfo()
             if not result.key.accessMask == app.config['API_KEY_MASK']:
                 flash('Wrong key mask - you need {}'.format(app.config['API_KEY_MASK']), 'error')
                 return redirect(url_for('join'))
             current_user.member.status = 'New'
+            current_user.member.main = main
             db.session.add(APIKey(current_user.member.id, key, code))
             db.session.commit()
             flash('Your application is in - someone will take a look soon', 'success')
         except Exception:
             flash('An error occurred when parsing your API key. Are you sure you entered it right?', 'error')
         return redirect(url_for('join'))
-    return render_template('join.html', character_name=character_name)
+    reddit_link = reddit_oauth.get_authorize_url()
+    return render_template('join.html', character_name=character_name, reddit_link=reddit_link)
 
 
 @app.route('/import_members')
@@ -310,8 +318,9 @@ def eve_oauth_callback():
 
 
 @app.route('/reddit/callback')
-@login_required
 def reddit_oauth_callback():
+    if current_user.is_anonymous:
+        return redirect(url_for('login'))
     app.logger.debug('Reddit callback by {}'.format(current_user.name))
     username = reddit_oauth.get_token(request.args['code'])
     current_user.member.reddit = username
