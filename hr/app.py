@@ -10,26 +10,33 @@ from hr.models import User, Member, APIKey
 from hr.reddit_oauth import RedditOAuth
 
 
+# Create and configure app
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
+# EVE XML API connection
 eveapi.set_user_agent('GETIN HR app ({})'.format(app.config['CONTACT_EMAIL']))
 xmlapi = eveapi.EVEAPIConnection()
+# EVE CREST API connection
 prest = Prest(
     User_Agent='GETIN HR app ({})'.format(app.config['CONTACT_EMAIL']),
     client_id=app.config['EVE_OAUTH_CLIENT_ID'],
     client_secret=app.config['EVE_OAUTH_SECRET'],
     callback_url=app.config['EVE_OAUTH_CALLBACK']
 )
+# Reddit OAuth connection
 reddit_oauth = RedditOAuth(
     app.config['REDDIT_OAUTH_CLIENT_ID'],
     app.config['REDDIT_OAUTH_SECRET'],
     app.config['REDDIT_OAUTH_CALLBACK']
 )
+# Database connection
 db.app = app
 db.init_app(app)
+# User management
 login_manager = LoginManager(app)
 login_manager.login_message = ''
 login_manager.login_view = 'check_access'
+# Application logging
 app.logger.setLevel(app.config['LOGGING_LEVEL'])
 handler = logging.FileHandler('log.txt')
 handler.setFormatter(logging.Formatter(style='{', fmt='{asctime} [{levelname}] {message}', datefmt='%Y-%m-%d %H:%M:%S'))
@@ -40,12 +47,37 @@ app.logger.info('Initialization complete')
 
 @login_manager.user_loader
 def load_user(user_id):
+    """
+    Takes a string int and returns a hr.models.User object for Flask-Login.
+
+    Args:
+        user_id (str) - user model id
+
+    Returns:
+        user (hr.models.User) with that id
+    """
     return User.query.filter_by(id=int(user_id)).first()
 
 
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
+    """
+    Member page.
+
+    This is for logged in members to view their personal data. They
+    can edit the API keys.
+
+    Methods:
+        GET
+        POST
+
+    Args:
+        None
+
+    Returns:
+        rendered template 'personal.html'
+    """
     if request.method == 'POST':
         app.logger.debug('POST on index by {}'.format(current_user.name))
         keys = request.form['keys']
@@ -56,8 +88,22 @@ def index():
 
 
 def validate_keys(keys, member):
+    """
+    This method validates a single- or multi-line string of API
+    keys and codes separated by ' - ' against the EVE API to
+    verify that they have the correct access mask.
+
+    Args:
+        keys (str) - text to parse and validate
+        member (hr.models.Member) - Member to update if the keys are valid
+
+    Returns:
+        value (bool) if all keys were valid
+    """
     errors = []
     for key in keys.splitlines():
+        if not key:
+            continue
         try:
             keyID, vCode = key.strip().split(' - ')
             auth = xmlapi.auth(keyID=keyID, vCode=vCode)
@@ -78,9 +124,21 @@ def validate_keys(keys, member):
     return not errors
 
 
-@app.route('/members', methods=['GET', 'POST'])
+@app.route('/members')
 @login_required
 def membership():
+    """
+    Recruiter page.
+
+    This page shows recruiters the total list of members of the corporation
+    and the applications to join the corporation.
+
+    Args:
+        None
+
+    Returns:
+        rendered template 'membership.html'
+    """
     if not current_user.member.status == 'Recruiter' and not current_user.admin:
         return redirect(url_for('index'))
     query = Member.query
@@ -100,6 +158,21 @@ def membership():
 @app.route('/members/add', methods=['GET', 'POST'])
 @login_required
 def add_member():
+    """
+    This page allows recruiters to manually add an applicant.
+
+    Methods:
+        GET
+        POST
+
+    Args:
+        None
+
+    Returns:
+        rendered template 'add_applicant.html'
+    """
+    if not current_user.member.status == 'Recruiter' and not current_user.admin:
+        return redirect(url_for('index'))
     if request.method == 'POST':
         app.logger.debug('POST on add_member by {}'.format(current_user.name))
         name = request.form.get('name')
@@ -123,6 +196,21 @@ def add_member():
 @app.route('/admin', methods=['GET', 'POSt'])
 @login_required
 def admin():
+    """
+    This is the admin control page, where admins can add and remove
+    recruiters and pull all corp members from the EVE API to update
+    the database.
+
+    Methods:
+        GET
+        POST
+
+    Args:
+        None
+
+    Returns:
+        rendered template 'admin.html'
+    """
     if not current_user.admin:
         app.logger.debug('Admin access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
@@ -147,6 +235,16 @@ def admin():
 @app.route('/admin/revoke/<name>')
 @login_required
 def revoke_access(name):
+    """
+    This transient endpoint allows an admin to revoke the recruiter
+    status of a member.
+
+    Args:
+        name (str) - name of the recruiter to revoke
+
+    Returns:
+        redirect to the admin endpoint
+    """
     if not current_user.admin:
         return redirect(url_for('index'))
     member = Member.query.filter_by(character_name=name).first()
@@ -162,6 +260,19 @@ def revoke_access(name):
 @app.route('/details/<int:id>', methods=['GET', 'POST'])
 @login_required
 def details(id):
+    """
+    This page allows recruiters to view and edit a member's details.
+
+    Methods:
+        GET
+        POST
+
+    Args:
+        id (int) - id of the member to examine
+
+    Returns:
+        rendered template 'details.html'
+    """
     if not current_user.member.status == 'Recruiter' and not current_user.admin:
         app.logger.debug('Details access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
@@ -191,6 +302,18 @@ def details(id):
 @app.route('/visibility/<int:id>/<action>')
 @login_required
 def visibility(id, action):
+    """
+    This transient endpoint allows a recruiter to set the visiblity
+    of a member on the membership page (to be used to hide people who
+    have left the corp).
+
+    Args:
+        id (int) - id of the member to modify
+        action (str) - whether to hide or show the member
+
+    Returns:
+        redirect to the member's details endpoint
+    """
     if not current_user.member.status == 'Recruiter' and not current_user.admin:
         app.logger.debug('Visibility access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
@@ -208,6 +331,16 @@ def visibility(id, action):
 @app.route('/delete/<int:id>')
 @login_required
 def delete(id):
+    """
+    This transient endpoint allows an admin to permanently delete a
+    member from the database.
+
+    Args:
+        id (int) - id of the member to delete
+
+    Returns:
+        redirect to the membership endpoint
+    """
     if not current_user.admin:
         app.logger.debug('Delete access denied to {}'.format(current_user.name))
         return redirect(url_for('details', id=id))
@@ -219,6 +352,20 @@ def delete(id):
 
 @app.route('/join', methods=['GET', 'POST'])
 def join():
+    """
+    This page allows a user to submit an application to join the corporation
+    by supplying an API key and optional reddit account and main character.
+
+    Methods:
+        GET
+        POST
+
+    Args:
+        None
+
+    Returns:
+        rendered tempalte 'join.html'
+    """
     if current_user.member.corporation == app.config['CORPORATION']:
         return redirect(url_for('index'))
     character_name = session.get('character_name') or current_user.name if not current_user.is_anonymous else None
@@ -251,11 +398,24 @@ def join():
 @app.route('/import_members')
 @login_required
 def import_members():
+    """
+    This transient endpoint allows an admin to import a list of corporation
+    members from the EVE API, updating any missing models from the database
+    and marking characters that have left (or been kicked from) the corporation
+    as being gone.
+
+    Args:
+        None
+
+    Returns:
+        redirect to the admin endpoint
+    """
     if not current_user.admin:
         app.logger.debug('Admin access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
     auth = xmlapi.auth(keyID=app.config['CORP_MEMBER_API_KEY'], vCode=app.config['CORP_MEMBER_API_CODE'])
     members = auth.corp.MemberTracking().members
+    # TODO if the member is in the database but not in the API response, mark them as having left the corp
     for member in members:
         db_model = Member.query.filter_by(character_name=member.name).first()
         if not db_model:
@@ -269,6 +429,15 @@ def import_members():
 
 @app.route('/check_access')
 def check_access():
+    """
+    This transient endpoint checks where a user should be redirect to.
+
+    Args:
+        None
+
+    Returns:
+        redirect to the index , join, or login endpoints
+    """
     if current_user and not current_user.is_anonymous:
         if current_user.is_authenticated:
             return redirect(url_for('index'))
@@ -278,11 +447,33 @@ def check_access():
 
 @app.route('/login')
 def login():
+    """
+    This page shows a user the EVE SSO link so they can log in.
+
+    Args:
+        None
+
+    Returns;
+        rendered template 'login.html'
+    """
     return render_template('login.html', url=prest.get_authorize_url())
 
 
 @app.route('/eve/callback')
 def eve_oauth_callback():
+    """
+    This transient endpoint completes the EVE SSO login. Here, hr.models.User models
+    and hr.models.Member models are created for the user if they don't
+    exist and the user is redirected the the page appropriate for their
+    access level.
+
+    Args:
+        None
+
+    Returns:
+        redirect to the login endpoint if something failed, join endpoint if
+        the user is a new user, or the index endpoint if they're already a member.
+    """
     if 'error' in request.path:
         app.logger.error('Error in EVE SSO callback: ' + request.url)
         flash('There was an error in EVE\'s response', 'error')
@@ -323,6 +514,16 @@ def eve_oauth_callback():
 
 @app.route('/reddit/callback')
 def reddit_oauth_callback():
+    """
+    This transient endpoint completes the reddit OAuth verification process
+    and sets the current user's reddit account in the database.
+
+    Args:
+        None
+
+    Returns:
+        redirect to the index endpoint
+    """
     if current_user.is_anonymous:
         return redirect(url_for('login'))
     app.logger.debug('Reddit callback by {}'.format(current_user.name))
@@ -334,13 +535,31 @@ def reddit_oauth_callback():
 
 @app.route('/logout')
 def logout():
+    """
+    This transient endpoint logs the user out of the site.
+
+    Args:
+        None
+
+    Returns:
+        redirect to the login endpoint
+    """
     app.logger.debug('{} logged out'.format(current_user.name if not current_user.is_anonymous else 'unknown user'))
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 
 @app.errorhandler(404)
 def error_404(e):
+    """
+    This page catches 404 errors in the app and shows the user an error page.
+
+    Args:
+        e (Exception) - the exception from the server
+
+    Returns:
+        rendered template 'error_404.html'
+    """
     app.logger.error('404 error at "{}" by {}: {}'.format(
         request.url, current_user.name if not current_user.is_anonymous else 'unknown user', str(e))
     )
@@ -349,6 +568,15 @@ def error_404(e):
 
 @app.errorhandler(500)
 def error_500(e):
+    """
+    This page catches 500 errors in the app and shows the user an error page.
+
+    Args:
+        e (Exception) - the exception from the server
+
+    Returns:
+        rendered template 'error_404.html'
+    """
     app.logger.error('500 error at "{}" by {}: {}'.format(
         request.url, current_user.name if not current_user.is_anonymous else 'unknown user', str(e))
     )
@@ -356,8 +584,26 @@ def error_500(e):
 
 
 def get_corp_for_name(name):
+    """
+    This helper method takes a character's name and returns their EVE character ID.
+
+    Args:
+        name (str) - full character name
+
+    Returns:
+        value (int) of their EVE character ID
+    """
     return get_corp_for_id(xmlapi.eve.CharacterID(names=name).characters[0].characterID)
 
 
 def get_corp_for_id(id):
+    """
+    This helper method takes a character's id and returns their corporation name.
+
+    Args:
+        name (str) - full character name
+
+    Returns:
+        value (str) of their corporation's name
+    """
     return xmlapi.eve.CharacterAffiliation(ids=id).characters[0].corporationName
