@@ -11,21 +11,17 @@
 
 <div class="row pad-top">
     <div class="col s12">
-        <a href="{{ url_for('membership') }}{% if not show_hidden %}?show_hidden=1{% endif %}"
+        <a href="{{ url_for('membership') }}"
             class="btn waves-effect waves-light btn-small orange">
-            {% if show_hidden %}
-                Normal view
-            {% else %}
-                Show hidden members
-            {% endif %}
+            Normal view
         </a>
-        <a href="{{ url_for('membership') }}{% if not show_applications %}?show_applications=1{% endif %}"
+        <a href="{{ url_for('membership') }}?show_hidden=1"
             class="btn waves-effect waves-light btn-small orange">
-            {% if show_applications %}
-                Normal view
-            {% else %}
-                Show applications only
-            {% endif %}
+            Show hidden members
+        </a>
+        <a href="{{ url_for('membership') }}?show_applications=1"
+            class="btn waves-effect waves-light btn-small orange">
+            Show applications
         </a>
         <div>
             {% if not members %}

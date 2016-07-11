@@ -149,7 +149,11 @@ def admin():
 def revoke_access(name):
     if not current_user.admin:
         return redirect(url_for('index'))
-    User.query.filter_by(name=name).first().member.status = 'Accepted'
+    member = Member.query.filter_by(character_name=name).first()
+    if not member:
+        flash('Unknown member name', 'error')
+        return redirect(url_for('admin'))
+    member.status = 'Accepted'
     db.session.commit()
     flash('User access revoked for ' + name, 'success')
     return redirect(url_for('admin'))
