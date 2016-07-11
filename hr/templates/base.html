@@ -38,10 +38,11 @@
                         <li><a href="{{ url_for('index') }}">My info</a></li>
                         {% if current_user.member.status == 'Recruiter' or current_user.admin %}
                             <li><a href="{{ url_for('membership') }}">Members</a></li>
+                            <li><a href="{{ url_for('reports') }}">Reports</a></li>
                         {% endif %}
                     {% endif %}
                     {% if current_user.admin %}
-                        <li><a href="{{ url_for('admin') }}">Admin</a></li>
+                        <li><a href="{{ url_for('admin') }}" class="black-text">Admin</a></li>
                     {% endif %}
                     <li><a href="{{ url_for('logout') }}">Log out</a></li>
                 {% elif not request.endpoint == 'login' %}

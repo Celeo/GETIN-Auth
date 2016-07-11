@@ -433,6 +433,18 @@ def import_members():
     return redirect(url_for('admin'))
 
 
+@app.route('/reports')
+@login_required
+def reports():
+    """
+    TODO
+    """
+    if not current_user.member.status == 'Recruiter' and not current_user.admin:
+        app.logger.debug('Visibility access denied to {}'.format(current_user.name))
+        return redirect(url_for('index'))
+    return render_template('reports.html')
+
+
 @app.route('/check_access')
 def check_access():
     """
