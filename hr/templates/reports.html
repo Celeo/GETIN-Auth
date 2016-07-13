@@ -62,4 +62,31 @@
     </tbody>
 </table>
 </ul>
+
+<h2>
+    Members with invalid API keys
+    <i class="material-icons tooltipped" data-position="bottom" data-delay="50" data-tooltip="Characters that don't
+    have a valid API key">info</i>
+</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Main</th>
+            <th>Status</th>
+            <th>Corp</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for member in invalid_api_keys %}
+            <tr>
+                <td><a href="{{ url_for('details', id=member.id) }}">{{ member.character_name }}</a></td>
+                <td>{{ member.main }}</td>
+                <td>{{ member.status }}</td>
+                <td>{{ member.corporation }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</ul>
 {% endblock content %}

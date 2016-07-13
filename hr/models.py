@@ -47,7 +47,7 @@ class Member(db.Model):
     main = db.Column(db.String)
     notes = db.Column(db.String)
     hidden = db.Column(db.Boolean)
-    api_keys = db.relationship('APIKey', backref='Member', lazy='dynamic')
+    api_keys = db.relationship('APIKey', backref='member', lazy='dynamic')
 
     def __init__(self, character_name, corporation, status='New', reddit=None, main=None, notes=None):
         self.character_name = character_name
