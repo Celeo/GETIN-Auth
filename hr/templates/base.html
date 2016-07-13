@@ -19,6 +19,7 @@
             setTimeout(function() {
                 $('.flashed.disappear').fadeOut('slow');
             }, 10000);
+            $(".button-collapse").sideNav();
         });
     </script>
     {% block head %}{% endblock head %}
@@ -29,10 +30,26 @@
     <nav>
         <div class="nav-wrapper orange lighten-2">
             <div class="container">
-                <a class="brand-logo">GETIN
-                    <span class="orange-text">in</span>Human<span class="orange-text">e</span> Resources
-                </a>
-                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                <a class="brand-logo">GETIN</a>
+                <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
+                <ul class="right hide-on-med-and-down">
+                {% if not current_user.is_anonymous %}
+                    {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('index') }}">My info</a></li>
+                        {% if current_user.member.status == 'Recruiter' or current_user.admin %}
+                            <li><a href="{{ url_for('membership') }}">Members</a></li>
+                            <li><a href="{{ url_for('reports') }}">Reports</a></li>
+                        {% endif %}
+                    {% endif %}
+                    {% if current_user.admin %}
+                        <li><a href="{{ url_for('admin') }}">Admin</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('logout') }}">Log out</a></li>
+                {% elif not request.endpoint == 'login' %}
+                    <li><a href="{{ url_for('login') }}">Log in</a></li>
+                {% endif %}
+                </ul>
+                <ul class="side-nav" id="mobile-demo">
                 {% if not current_user.is_anonymous %}
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('index') }}">My info</a></li>
