@@ -229,6 +229,41 @@ def admin():
     return render_template('admin.html', admins=admins, recruiters=recruiters)
 
 
+@app.route('/admin/set_status', methods=['POST'])
+@login_required
+def admin_set_status():
+    """
+    This transient endpoint allows an admin to set the
+    status of a member.
+
+    Methods:
+        POST
+
+    Args:
+        None
+
+    Returns:
+        redirect to the admin endpoint
+    """
+    if not current_user.admin:
+        return redirect(url_for('index'))
+    if not request.method == 'POST':
+        return redirect(url_for('admin'))
+    name = request.form.get('name', None)
+    status = request.form.get('status', 'New')
+    if not name or not status:
+        flash('Missing name or status', 'error')
+        return redirect(url_for('admin'))
+    member = Member.query.filter_by(character_name=name).first()
+    if not member:
+        flash('Unknown member name', 'error')
+        return redirect(url_for('admin'))
+    member.status = status
+    db.session.commit()
+    flash('User status changed for ' + name + ' to ' + status, 'success')
+    return redirect(url_for('admin'))
+
+
 @app.route('/admin/revoke/<name>')
 @login_required
 def revoke_access(name):
