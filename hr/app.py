@@ -492,7 +492,7 @@ def reports():
     member_names = map(lambda x: x.character_name, members)
     defunct_alts = []
     invalid_mains = []
-    invalid_api_keys = []
+    missing_api_keys = []
     for member in members:
         if member.character_name != member.main:
             if member.main not in member_names:
@@ -500,8 +500,8 @@ def reports():
             elif [m for m in members if m.character_name == member.main][0].status == 'Left':
                 defunct_alts.append(member)
         if not member.get_keys():
-            invalid_api_keys.append(member)
-    return render_template('reports.html', defunct_alts=defunct_alts, invalid_mains=invalid_mains, invalid_api_keys=invalid_api_keys)
+            missing_api_keys.append(member)
+    return render_template('reports.html', defunct_alts=defunct_alts, invalid_mains=invalid_mains, missing_api_keys=missing_api_keys)
 
 
 @app.route('/check_access')

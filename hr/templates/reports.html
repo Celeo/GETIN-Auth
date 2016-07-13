@@ -64,9 +64,9 @@
 </ul>
 
 <h2>
-    Members with invalid API keys
+    Members with missing API keys
     <i class="material-icons tooltipped" data-position="bottom" data-delay="50" data-tooltip="Characters that don't
-    have a valid API key">info</i>
+    have an API key recorded">info</i>
 </h2>
 <table>
     <thead>
@@ -78,7 +78,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for member in invalid_api_keys %}
+        {% for member in missing_api_keys %}
             <tr>
                 <td><a href="{{ url_for('details', id=member.id) }}">{{ member.character_name }}</a></td>
                 <td>{{ member.main }}</td>
