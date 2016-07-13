@@ -141,12 +141,9 @@ def membership():
     """
     if not current_user.member.status == 'Recruiter' and not current_user.admin:
         return redirect(url_for('index'))
-    query = Member.query
-    show_hidden = bool(request.args.get('show_hidden', 0))
-    show_applications = bool(request.args.get('show_applications', 0))
-    if not show_hidden:
-        query = query.filter_by(hidden=False)
-    members = query.all()
+    show_hidden = request.args.get('show_hidden', 0, type=bool)
+    show_applications = request.args.get('show_applications', 0, type=bool)
+    members = Member.query.filter_by(hidden=show_hidden).all()
     if show_applications:
         members = [member for member in members if member.status in
             ['Guest', 'New', 'Ready to be interviewed', 'Ready to be accepted']]
@@ -366,7 +363,7 @@ def join():
     Returns:
         rendered tempalte 'join.html'
     """
-    if current_user.member.corporation == app.config['CORPORATION']:
+    if current_user.is_authenticated:
         return redirect(url_for('index'))
     character_name = session.get('character_name') or current_user.name if not current_user.is_anonymous else None
     if not character_name:
@@ -395,9 +392,9 @@ def join():
     return render_template('join.html', character_name=character_name, reddit_link=reddit_link)
 
 
-@app.route('/import_members')
+@app.route('/sync')
 @login_required
-def import_members():
+def sync():
     """
     This transient endpoint allows an admin to import a list of corporation
     members from the EVE API, updating any missing models from the database
@@ -413,22 +410,29 @@ def import_members():
     if not current_user.admin:
         app.logger.debug('Admin access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
+    app.logger.info('-- Starting member sync')
     auth = xmlapi.auth(keyID=app.config['CORP_MEMBER_API_KEY'], vCode=app.config['CORP_MEMBER_API_CODE'])
     members = auth.corp.MemberTracking().members
-    checked_members = []
+    api_members = []
     for member in members:
         db_model = Member.query.filter_by(character_name=member.name).first()
         if not db_model:
+            app.logger.info('-- Added {} to the corporation'.format(member.name))
             db.session.add(Member(member.name, app.config['CORPORATION'], 'Accepted'))
         elif db_model.status not in ['Accepted', 'Recruiter']:
             db_model.status = 'Accepted'
-        checked_members.append(member.name)
-    for member in Member.query.all():
-        if member not in checked_members:
-            app.logger.warning(member.name + ' has left the corporation')
+            app.logger.info('-- {} has been accepted into the corporation'.format(member.name))
+        api_members.append(member.name)
+    for member in Member.query.filter_by(status='Accepted').all():
+        if member.character_name not in api_members:
+            app.logger.warning('-- ' + member.character_name + ' is not in the corporation')
             member.status = 'Left'
             member.hidden = True
-    db.session.commit()
+    try:
+        db.session.commit()
+        app.logger.info('-- Database saved after member sync')
+    except Exception as e:
+        app.logger.error('-- An error occurred when syncing membrs: ' + str(e))
     flash('Members imported', 'success')
     return redirect(url_for('admin'))
 
@@ -437,12 +441,29 @@ def import_members():
 @login_required
 def reports():
     """
-    TODO
+    This page shows reports to the recruiters for the purpose of validation
+    and security.
+
+    Args:
+        None
+
+    Returns:
+        Rendered template 'reports.html'
     """
     if not current_user.member.status == 'Recruiter' and not current_user.admin:
         app.logger.debug('Visibility access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
-    return render_template('reports.html')
+    members = Member.query.all()
+    member_names = map(lambda x: x.character_name, members)
+    defunct_alts = []
+    invalid_mains = []
+    for member in members:
+        if member.character_name != member.main:
+            if member.main not in member_names:
+                invalid_mains.append(member)
+            elif [m for m in members if m.character_name == member.main][0].status == 'Left':
+                defunct_alts.append(member)
+    return render_template('reports.html', defunct_alts=defunct_alts, invalid_mains=invalid_mains)
 
 
 @app.route('/check_access')

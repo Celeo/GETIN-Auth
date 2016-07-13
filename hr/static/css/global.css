@@ -50,3 +50,6 @@ code {
 td.small {
     width: 15%;
 }
+ul.circle > li {
+    list-style-type: circle;
+}
