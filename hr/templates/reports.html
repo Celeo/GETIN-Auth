@@ -1,8 +1,20 @@
 {% extends 'base.html' %}
 
 
+{% block head %}
+<script>
+    $(document).ready(function() {
+        $('.tooltipped').tooltip({delay: 50});
+    });
+</script>
+{% endblock head %}
+
 {% block content %}
-<h2>Members with invalid mains</h2>
+<h2>
+    Members with invalid mains
+    <i class="material-icons tooltipped" data-position="bottom" data-delay="50" data-tooltip="Characters with
+    mains not in the corp">info</i>
+</h2>
 <table>
     <thead>
         <tr>
@@ -24,7 +36,11 @@
     </tbody>
 </table>
 
-<h2>Members with mains who've left the corp</h2>
+<h2>
+    Members with mains who've left the corp
+    <i class="material-icons tooltipped" data-position="bottom" data-delay="50" data-tooltip="Characters with mains
+    that where preiviously in the corp but aren't now">info</i>
+</h2>
 <table>
     <thead>
         <tr>
