@@ -2,8 +2,8 @@ import logging
 
 from flask import Flask, render_template, redirect, request, url_for, flash, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-import eveapi
-from prest import Prest
+from preston.crest import Preston as CREST
+from preston.xmlapi import Preston as XMLAPI
 
 from hr.shared import db
 from hr.models import User, Member, APIKey
@@ -14,11 +14,11 @@ from hr.reddit_oauth import RedditOAuth
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 # EVE XML API connection
-eveapi.set_user_agent('GETIN HR app ({})'.format(app.config['CONTACT_EMAIL']))
-xmlapi = eveapi.EVEAPIConnection()
+user_agent = 'GETIN HR app ({})'.format(app.config['CONTACT_EMAIL'])
+xmlapi = XMLAPI(user_agent=user_agent)
 # EVE CREST API connection
-prest = Prest(
-    User_Agent='GETIN HR app ({})'.format(app.config['CONTACT_EMAIL']),
+crest = CREST(
+    user_agent=user_agent,
     client_id=app.config['EVE_OAUTH_CLIENT_ID'],
     client_secret=app.config['EVE_OAUTH_SECRET'],
     callback_url=app.config['EVE_OAUTH_CALLBACK']
@@ -106,11 +106,11 @@ def validate_keys(keys, member):
             continue
         try:
             keyID, vCode = key.strip().split(' - ')
-            auth = xmlapi.auth(keyID=keyID, vCode=vCode)
+            auth = XMLAPI(key=keyID, code=vCode, user_agent=user_agent)
             result = auth.account.APIKeyInfo()
-            if not result.key.accessMask == app.config['API_KEY_MASK']:
+            if not int(result['key']['@accessMask']) == app.config['API_KEY_MASK']:
                 errors.append('The key with ID "{}" has the wrong access mask. Has: {}, needs: {}'.format(
-                    keyID, result.key.accessMask, app.config['API_KEY_MASK']
+                    keyID, result['key']['@accessMask'], app.config['API_KEY_MASK']
                 ))
         except Exception as e:
             errors.append('An error occurred with line "{}"'.format(key))
@@ -374,10 +374,10 @@ def join():
         try:
             key = request.form['key']
             code = request.form['code']
-            auth = xmlapi.auth(keyID=key, vCode=code)
+            auth = XMLAPI(key=key, code=code, user_agent=user_agent)
             main = request.form.get('main')
             result = auth.account.APIKeyInfo()
-            if not result.key.accessMask == app.config['API_KEY_MASK']:
+            if not int(result['key']['@accessMask']) == app.config['API_KEY_MASK']:
                 flash('Wrong key mask - you need {}'.format(app.config['API_KEY_MASK']), 'error')
                 return redirect(url_for('join'))
             current_user.member.status = 'New'
@@ -411,18 +411,18 @@ def sync():
         app.logger.debug('Admin access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
     app.logger.info('-- Starting member sync')
-    auth = xmlapi.auth(keyID=app.config['CORP_MEMBER_API_KEY'], vCode=app.config['CORP_MEMBER_API_CODE'])
-    members = auth.corp.MemberTracking().members
+    auth = XMLAPI(key=app.config['CORP_MEMBER_API_KEY'], code=app.config['CORP_MEMBER_API_CODE'], user_agent=user_agent)
     api_members = []
-    for member in members:
-        db_model = Member.query.filter_by(character_name=member.name).first()
+    for member in auth.corp.MemberTracking()['rowset']['row']:
+        name = member['@name']
+        db_model = Member.query.filter_by(character_name=name).first()
         if not db_model:
-            app.logger.info('-- Added {} to the corporation'.format(member.name))
-            db.session.add(Member(member.name, app.config['CORPORATION'], 'Accepted'))
+            app.logger.info('-- Added {} to the corporation'.format(name))
+            db.session.add(Member(name, app.config['CORPORATION'], 'Accepted'))
         elif db_model.status not in ['Accepted', 'Recruiter']:
             db_model.status = 'Accepted'
-            app.logger.info('-- {} has been accepted into the corporation'.format(member.name))
-        api_members.append(member.name)
+            app.logger.info('-- {} has been accepted into the corporation'.format(name))
+        api_members.append(name)
     for member in Member.query.filter_by(status='Accepted').all():
         if member.character_name not in api_members:
             app.logger.warning('-- ' + member.character_name + ' is not in the corporation')
@@ -498,7 +498,7 @@ def login():
     Returns;
         rendered template 'login.html'
     """
-    return render_template('login.html', url=prest.get_authorize_url())
+    return render_template('login.html', url=crest.get_authorize_url())
 
 
 @app.route('/eve/callback')
@@ -521,7 +521,7 @@ def eve_oauth_callback():
         flash('There was an error in EVE\'s response', 'error')
         return url_for('login')
     try:
-        auth = prest.authenticate(request.args['code'])
+        auth = crest.authenticate(request.args['code'])
     except Exception as e:
         app.logger.error('CREST signing error: ' + str(e))
         flash('There was an authentication error signing you in.', 'error')
@@ -635,7 +635,7 @@ def get_corp_for_name(name):
     Returns:
         value (int) of their EVE character ID
     """
-    return get_corp_for_id(xmlapi.eve.CharacterID(names=name).characters[0].characterID)
+    return get_corp_for_id(xmlapi.eve.CharacterId(names=name)['rowset']['row']['@characterID'])
 
 
 def get_corp_for_id(id):
@@ -648,4 +648,4 @@ def get_corp_for_id(id):
     Returns:
         value (str) of their corporation's name
     """
-    return xmlapi.eve.CharacterAffiliation(ids=id).characters[0].corporationName
+    return xmlapi.eve.CharacterAffiliation(ids=id)['rowset']['row']['@corporationName']
