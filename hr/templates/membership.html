@@ -4,7 +4,7 @@
 {% block content %}
 <div class="clearfix">
     <h2 class="left">Members and Applicants</h2>
-    <a class="right btn-floating btn-large waves-effect waves-light orange" href="{{ url_for('add_member') }}">
+    <a class="right btn-floating btn-large waves-effect waves-light grey darken-1" href="{{ url_for('add_member') }}">
         <i class="material-icons">add</i>
     </a>
 </div>
@@ -12,15 +12,15 @@
 <div class="row pad-top">
     <div class="col s12">
         <a href="{{ url_for('membership') }}"
-            class="btn waves-effect waves-light btn-small orange">
+            class="btn waves-effect waves-light btn-small grey darken-1">
             Normal view
         </a>
         <a href="{{ url_for('membership') }}?show_hidden=1"
-            class="btn waves-effect waves-light btn-small orange">
+            class="btn waves-effect waves-light btn-small grey darken-1">
             Show hidden members
         </a>
         <a href="{{ url_for('membership') }}?show_applications=1"
-            class="btn waves-effect waves-light btn-small orange">
+            class="btn waves-effect waves-light btn-small grey darken-1">
             Show applications
         </a>
         <div>
@@ -46,7 +46,7 @@
                                 </div>
                             </div>
                             <div class="collapsible-body">
-                                <table class="orange lighten-5">
+                                <table class="grey lighten-3">
                                     <thead>
                                         <tr>
                                             <th>Reddit</th>
@@ -64,7 +64,7 @@
                                             <td>{{ member.main }}</td>
                                             <td class="small">
                                                 <a href="{{ url_for('details', id=member.id) }}"
-                                                    class="btn waves-effect waves-light btn-small orange">
+                                                    class="btn waves-effect waves-light btn-small grey darken-1">
                                                     Details
                                                 </a>
                                             </td>

@@ -56,7 +56,7 @@
                         </select>
                     </div>
                     <div class="col s4">
-                        <button class="waves-effect waves-light btn orange" type="submit">Save</button>
+                        <button class="waves-effect waves-light btn grey darken-1" type="submit">Save</button>
                     </div>
                     <input type="text" name="section" value="status" hidden>
                 </form>
@@ -66,23 +66,23 @@
             <td>Main</td>
             <td>
                 {{ member.main }}<br>
-                <a class="waves-effect waves-light btn modal-trigger orange" href="#modalMain">Edit ...</a>
+                <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalMain">Edit ...</a>
             </td>
         </tr>
         <tr>
             <td>API key(s)</td>
             <td>
-                <a class="waves-effect waves-light btn modal-trigger orange" href="#modalAPI">Edit ...</a>
+                <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalAPI">Edit ...</a>
             </td>
         </tr>
         <tr>
             <td>Visibility</td>
             <td>
                 {% if not member.hidden %}
-                    <a class="waves-effect waves-light btn modal-trigger orange"
+                    <a class="waves-effect waves-light btn modal-trigger grey darken-1"
                         href="{{ url_for('visibility', id=member.id, action='hide') }}">Hide</a>
                 {% else %}
-                    <a class="waves-effect waves-light btn modal-trigger orange"
+                    <a class="waves-effect waves-light btn modal-trigger grey darken-1"
                         href="{{ url_for('visibility', id=member.id, action='show') }}">Show</a>
                 {% endif%}
             </td>
@@ -117,7 +117,7 @@
     </div>
     <div class="modal-footer">
         <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
-        <button class="waves-effect waves-light btn-flat orange" type="submit" form="formKeys">Save</button>
+        <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formKeys">Save</button>
     </div>
 </div>
 
@@ -141,7 +141,7 @@
     </div>
     <div class="modal-footer">
         <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
-        <button class="waves-effect waves-light btn-flat orange" type="submit" form="formMain">Save</button>
+        <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formMain">Save</button>
     </div>
 </div>
 
