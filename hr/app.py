@@ -317,14 +317,22 @@ def details(id):
         app.logger.error('Unknown id on details for id {} by {}'.format(id, current_user.name))
         return redirect(url_for('membership'))
     if request.method == 'POST':
-        app.logger.debug('POST on details by {}'.format(current_user.name))
         if request.form['section'] == 'keys':
+            app.logger.info('POST on details - keys by {} for {}'.format(
+                current_user.name, member.character_name
+            ))
             validate_keys(request.form['keys'], member)
         elif request.form['section'] == 'status':
+            app.logger.info('POST on details - status by {} for {}: {}'.format(
+                current_user.name, member.character_name, request.form['status']
+            ))
             member.status = request.form['status']
             db.session.commit()
             flash('Status changed', 'success')
         elif request.form['section'] == 'main':
+            app.logger.info('POST on details - main by {} for {}: {}'.format(
+                current_user.name, member.character_name, request.form['main']
+            ))
             member.main = request.form['main']
             db.session.commit()
             flash('Main character changed', 'success')
