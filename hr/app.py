@@ -1,6 +1,7 @@
 import logging
+from functools import wraps
 
-from flask import Flask, render_template, redirect, request, url_for, flash, session
+from flask import Flask, render_template, redirect, request, url_for, flash, session, abort, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from preston.crest import Preston as CREST
 from preston.xmlapi import Preston as XMLAPI
@@ -43,6 +44,8 @@ handler.setFormatter(logging.Formatter(style='{', fmt='{asctime} [{levelname}] {
 handler.setLevel(app.config['LOGGING_LEVEL'])
 app.logger.addHandler(handler)
 app.logger.info('Initialization complete')
+# Storage for API calls
+new_apps = []
 
 
 @login_manager.user_loader
@@ -419,6 +422,7 @@ def join():
             current_user.member.main = main
             db.session.add(APIKey(current_user.member.id, key, code))
             db.session.commit()
+            new_apps.append(current_user.name)
             flash('Your application is in - someone will take a look soon', 'success')
         except Exception:
             flash('An error occurred when parsing your API key. Are you sure you entered it right?', 'error')
@@ -431,10 +435,7 @@ def join():
 @login_required
 def sync():
     """
-    This transient endpoint allows an admin to import a list of corporation
-    members from the EVE API, updating any missing models from the database
-    and marking characters that have left (or been kicked from) the corporation
-    as being gone.
+    This transient endpoint calls the sync_members method.
 
     Args:
         None
@@ -445,31 +446,57 @@ def sync():
     if not current_user.admin:
         app.logger.debug('Admin access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
+    sync_members()
+    return redirect(url_for('admin'))
+
+
+def sync_members():
+    """
+    This method allows an admin to import a list of corporation
+    members from the EVE API, updating any missing models from the database
+    and marking characters that have left (or been kicked from) the corporation
+    as being gone.
+
+    Args:
+        None
+
+    Returns:
+        value (dict) of membership changes
+    """
     app.logger.info('-- Starting member sync')
     auth = XMLAPI(key=app.config['CORP_MEMBER_API_KEY'], code=app.config['CORP_MEMBER_API_CODE'], user_agent=user_agent)
     api_members = []
+    existing_members, new_members, left_members = [], [], []
     for member in auth.corp.MemberTracking()['rowset']['row']:
         name = member['@name']
         db_model = Member.query.filter_by(character_name=name).first()
         if not db_model:
             app.logger.info('-- Added {} to the corporation'.format(name))
+            existing_members.append(name)
             db.session.add(Member(name, app.config['CORPORATION'], 'Accepted'))
         elif db_model.status not in ['Accepted', 'Recruiter']:
             db_model.status = 'Accepted'
+            new_members.append(name)
             app.logger.info('-- {} has been accepted into the corporation'.format(name))
         api_members.append(name)
     for member in Member.query.filter_by(status='Accepted').all():
         if member.character_name not in api_members:
             app.logger.warning('-- ' + member.character_name + ' is not in the corporation')
             member.status = 'Left'
+            member.corporation = ''
+            left_members.append(member.character_name)
             member.hidden = True
     try:
         db.session.commit()
         app.logger.info('-- Database saved after member sync')
     except Exception as e:
-        app.logger.error('-- An error occurred when syncing membrs: ' + str(e))
+        app.logger.error('-- An error occurred when syncing members: ' + str(e))
     flash('Members imported', 'success')
-    return redirect(url_for('admin'))
+    return {
+        'existing_members': existing_members,
+        'new_members': new_members,
+        'left_members': left_members
+    }
 
 
 @app.route('/reports')
@@ -624,6 +651,104 @@ def logout():
     app.logger.debug('{} logged out'.format(current_user.name if not current_user.is_anonymous else 'unknown user'))
     logout_user()
     return redirect(url_for('login'))
+
+
+def api_key_required(f):
+    @wraps(f)
+    def inner(*args, **kwargs):
+        """
+        Endpoint decorator for REST interactions - the request
+        header must contain the secret from the config.
+
+        Args:
+            args (tuple) - args
+            kwargs (dict) - kwargs
+
+        Returns:
+            call of the wrapped method if the header was valid, a
+            error 403 response otherwise
+        """
+        token = request.headers.get('REST-SECRET')
+        if not token or not token == app.config['REST_SECRET']:
+            app.logger.warning('Access denied to API endpoint ' + str(request.endpoint) + ', token = ' + str(token))
+            abort(403)
+        return f(*args, **kwargs)
+    return inner
+
+
+@app.route('/api/sync')
+@api_key_required
+def api_sync():
+    """
+    Syncs the corporation membership with the EVE XML API
+    and returns the result of doing so.
+
+    Args:
+        None
+
+    Returns:
+        response (JSON)
+    """
+    app.logger.info('API endpoint sync accessed')
+    return jsonify(sync_members())
+
+
+@app.route('/api/apps')
+@api_key_required
+def api_apps():
+    """
+    Returns a list of all new apps since the last poll.
+
+    Args:
+        None
+
+    Returns:
+        response (JSON)
+    """
+    app.logger.info('API endpoint apps accessed')
+    apps = new_apps
+    new_apps.clear()
+    return jsonify(apps)
+
+
+@app.route('/api/keys')
+@api_key_required
+def api_keys():
+    """
+    Iterates through all API keys in the database and checks that
+    they're still valid. Since API keys are validated when entered
+    and cannot be removed from the system without being switched
+    for another valid pair, the only way that a user can block
+    access to their data through the EVE XML API is deleting the
+    key from their account. There's no notification for this, so
+    keys have to be checked periodically.
+
+    To reduce the amount of API calls, members who've already
+    left the corporation are not checked.
+
+    Args:
+        None
+
+    Returns:
+        response (JSON)
+    """
+    app.logger.info('API endpoint keys accessed')
+    invalid_keys = []
+    for pair in APIKey.query.all():
+        if pair.member.status == 'Left':
+            continue
+        try:
+            auth = XMLAPI(key=pair.key, code=pair.code, user_agent=user_agent)
+            result = auth.account.APIKeyInfo()
+            if not int(result['key']['@accessMask']) == app.config['API_KEY_MASK']:
+                invalid_keys.append(pair.member.character_name)
+                app.logger.warning('-- ' + pair.member.character_name + ' has an invalid API key!')
+            else:
+                app.logger.debug('-- ' + pair.member.character_name + ' has a valid API key')
+        except Exception:
+            invalid_keys.append(pair.member.character_name)
+            app.logger.warning('-- ' + pair.member.character_name + ' has an invalid API key!')
+    return jsonify(invalid_keys)
 
 
 @app.errorhandler(404)
