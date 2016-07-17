@@ -78,6 +78,12 @@
             </td>
         </tr>
         <tr>
+            <td>Notes</td>
+            <td>
+                <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalNotes">Notes ...</a>
+            </td>
+        </tr>
+        <tr>
             <td>Visibility</td>
             <td>
                 {% if not member.hidden %}
@@ -120,6 +126,27 @@
     <div class="modal-footer">
         <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
         <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formKeys">Save</button>
+    </div>
+</div>
+
+<div id="modalNotes" class="modal bottom-sheet">
+    <div class="modal-content">
+        <h4>modalNotes</h4>
+        <div class="row">
+            <form action="{{ url_for('details', id=member.id) }}" method="POST" class="col s12" id="formNotes">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <label for="notes">Notes</label>
+                        <textarea name="notes" class="materialize-textarea">{{ member.notes }}</textarea>
+                        <input type="text" name="section" value="notes" hidden>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
+        <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formNotes">Save</button>
     </div>
 </div>
 

@@ -117,7 +117,7 @@ def validate_keys(keys, member):
                 ))
         except Exception as e:
             errors.append('An error occurred with line "{}"'.format(key))
-            print(str(e))
+            errors.append('An error occurred with line "{}": {}'.format(key, str(e)))
     if not errors and member:
         member.set_api_keys(keys.splitlines())
         db.session.commit()
@@ -174,23 +174,27 @@ def add_member():
     if not current_user.member.status == 'Recruiter' and not current_user.admin:
         return redirect(url_for('index'))
     if request.method == 'POST':
-        app.logger.debug('POST on add_member by {}'.format(current_user.name))
         name = request.form.get('name')
         reddit = request.form.get('reddit')
         status = request.form.get('status')
         apikey = request.form.get('apikey')
         apicode = request.form.get('apicode')
-        if not validate_keys('{} - {}'.format(apikey, apicode), None):
-            return redirect(url_for('add_member'))
-        alts = request.form.get('alts')
+        main = request.form.get('main')
         notes = request.form.get('notes')
-        member = Member(name, get_corp_for_name(name), status, reddit, alts, notes)
+        app.logger.debug('POST on add_member by {}: name = {}, reddit = {}, status = {}, main = {}'.format(
+            current_user.name, name, reddit, status, main
+        ))
+        if not validate_keys('{} - {}'.format(apikey, apicode), None):
+            app.logger.info('POST on add_member didn\'t have a valid key')
+            return redirect(url_for('add_member'))
+        member = Member(name, get_corp_for_name(name), status, reddit, main, notes)
+        app.logger.info('New member added through add_member: ' + str(name))
         db.session.add(member)
         db.session.commit()
         db.session.add(APIKey(member.id, apikey, apicode))
         db.session.commit()
         flash('Character added', 'success')
-    return render_template('add_applicant.html')
+    return render_template('add_member.html')
 
 
 @app.route('/admin', methods=['GET', 'POSt'])
@@ -336,6 +340,13 @@ def details(id):
             member.main = request.form['main']
             db.session.commit()
             flash('Main character changed', 'success')
+        elif request.form['section'] == 'notes':
+            app.logger.info('POST on details - notes by {} for {}: {}'.format(
+                current_user.name, member.character_name, request.form['notes']
+            ))
+            member.notes = request.form['notes']
+            db.session.commit()
+            flash('Notes changed', 'success')
         else:
             flash('Unknown form submission', 'error')
         return redirect(url_for('details', id=id))
