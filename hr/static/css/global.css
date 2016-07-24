@@ -61,3 +61,7 @@ td.small {
 ul.circle > li {
     list-style-type: circle;
 }
+.modal-bottom-tall {
+    max-height: 100% !important;
+    height: 75% !important;
+}

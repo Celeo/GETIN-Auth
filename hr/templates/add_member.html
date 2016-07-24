@@ -29,8 +29,13 @@
                 <label for="status">Status</label>
             </div>
             <div class="input-field col s4">
+                <select name="main" id="main">
+                    <option value="*">** This character **</option>
+                    {% for member in all_members %}
+                        <option value="{{ member }}">{{ member }}</option>
+                    {% endfor %}
+                </select>
                 <label for="main">Main</label>
-                <input type="text" name="main">
             </div>
         </div>
         <div class="row">

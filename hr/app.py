@@ -180,6 +180,8 @@ def add_member():
         apikey = request.form.get('apikey')
         apicode = request.form.get('apicode')
         main = request.form.get('main')
+        if main == '*':
+            main = name
         notes = request.form.get('notes')
         app.logger.debug('POST on add_member by {}: name = {}, reddit = {}, status = {}, main = {}'.format(
             current_user.name, name, reddit, status, main
@@ -194,7 +196,7 @@ def add_member():
         db.session.add(APIKey(member.id, apikey, apicode))
         db.session.commit()
         flash('Character added', 'success')
-    return render_template('add_member.html')
+    return render_template('add_member.html', all_members=get_all_member_names())
 
 
 @app.route('/admin', methods=['GET', 'POSt'])
@@ -337,7 +339,8 @@ def details(id):
             app.logger.info('POST on details - main by {} for {}: {}'.format(
                 current_user.name, member.character_name, request.form['main']
             ))
-            member.main = request.form['main']
+            main = request.form['main']
+            member.main = main if not main == '*' else member.character_name
             db.session.commit()
             flash('Main character changed', 'success')
         elif request.form['section'] == 'notes':
@@ -350,7 +353,7 @@ def details(id):
         else:
             flash('Unknown form submission', 'error')
         return redirect(url_for('details', id=id))
-    return render_template('details.html', member=member)
+    return render_template('details.html', member=member, all_members=get_all_member_names())
 
 
 @app.route('/visibility/<int:id>/<action>')
@@ -433,6 +436,8 @@ def join():
             code = request.form['code']
             auth = XMLAPI(key=key, code=code, user_agent=user_agent)
             main = request.form.get('main')
+            if main == '*':
+                main = current_user.member.character_name
             result = auth.account.APIKeyInfo()
             if not int(result['key']['@accessMask']) == app.config['API_KEY_MASK']:
                 flash('Wrong key mask - you need {}'.format(app.config['API_KEY_MASK']), 'error')
@@ -447,7 +452,7 @@ def join():
             flash('An error occurred when parsing your API key. Are you sure you entered it right?', 'error')
         return redirect(url_for('join'))
     reddit_link = reddit_oauth.get_authorize_url()
-    return render_template('join.html', character_name=character_name, reddit_link=reddit_link)
+    return render_template('join.html', character_name=character_name, reddit_link=reddit_link, all_members=get_all_member_names())
 
 
 @app.route('/sync')
@@ -535,10 +540,11 @@ def reports():
         app.logger.debug('Visibility access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
     members = Member.query.all()
-    member_names = map(lambda x: x.character_name, members)
+    member_names = get_all_member_names()
     defunct_alts = []
     invalid_mains = []
     missing_api_keys = []
+    print(member_names)
     for member in members:
         if member.character_name != member.main:
             if member.main not in member_names:
@@ -828,3 +834,16 @@ def get_corp_for_id(id):
         value (str) of their corporation's name
     """
     return xmlapi.eve.CharacterAffiliation(ids=id)['rowset']['row']['@corporationName']
+
+
+def get_all_member_names():
+    """
+    Returns a list of all member names in the corporation.
+
+    Args:
+        None
+
+    Returns:
+        value (list) of string names
+    """
+    return list(map(lambda x: x.character_name, Member.query.all()))

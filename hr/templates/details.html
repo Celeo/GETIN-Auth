@@ -150,7 +150,7 @@
     </div>
 </div>
 
-<div id="modalMain" class="modal bottom-sheet">
+<div id="modalMain" class="modal bottom-sheet modal-bottom-tall">
     <div class="modal-content">
         <h4>Main</h4>
         <p>
@@ -158,11 +158,16 @@
         </p>
         <div class="row">
             <form action="{{ url_for('details', id=member.id) }}" method="POST" class="col s12" id="formMain">
+                <input type="hidden" name="section" value="main">
                 <div class="row">
-                    <div class="input-field col s12">
-                        <label for="keys">Main</label>
-                        <input type="text" name="main" value="{{ member.main }}">
-                        <input type="text" name="section" value="main" hidden>
+                    <div class="input-field col s4">
+                        <select name="main" id="main">
+                            <option value="*">** This character **</option>
+                            {% for member in all_members %}
+                                <option value="{{ member }}">{{ member }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="main">Main</label>
                     </div>
                 </div>
             </form>
