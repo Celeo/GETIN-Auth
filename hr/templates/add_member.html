@@ -10,8 +10,9 @@
 {% endblock head %}
 
 {% block content %}
-<h2>Add an applicant</h2>
+<h2>Add a member</h2>
 <h4>A player can apply to the corp themselves; this page is a secondary method of adding them</h4>
+<h4 class="red-text">All character names are case-sensitive!</h4>
 <div class="card-panel">
     <form action="{{ url_for('add_member') }}" method="POST" class="col s12">
         <div class="row">
