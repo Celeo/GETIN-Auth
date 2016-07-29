@@ -334,6 +334,8 @@ def details(id):
                 current_user.name, member.character_name, request.form['status']
             ))
             member.status = request.form['status']
+            if member.status == 'Denied':
+                member.hidden = True
             db.session.commit()
             flash('Status changed', 'success')
         elif request.form['section'] == 'main':
