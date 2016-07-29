@@ -851,4 +851,4 @@ def get_all_member_names():
     Returns:
         value (list) of string names
     """
-    return list(map(lambda x: x.character_name, Member.query.all()))
+    return sorted(list(map(lambda x: x.character_name, Member.query.all())))
