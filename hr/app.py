@@ -148,7 +148,6 @@ def membership():
     show_applications = request.args.get('show_applications', 0, type=bool)
     members = Member.query.filter_by(hidden=show_hidden).all()
     if show_applications:
-        print('Filtering to ** show_applications **')
         members = [member for member in members if member.status in
             ['New', 'Ready to be interviewed', 'Ready to be accepted']]
     members = sorted(members, key=lambda x: x.character_name)
@@ -542,12 +541,11 @@ def reports():
     if not current_user.member.status == 'Recruiter' and not current_user.admin:
         app.logger.debug('Visibility access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
-    members = Member.query.all()
+    members = Member.query.filter(Member.status != 'Left').all()
     member_names = get_all_member_names()
     defunct_alts = []
     invalid_mains = []
     missing_api_keys = []
-    print(member_names)
     for member in members:
         if member.character_name != member.main:
             if member.main not in member_names:
