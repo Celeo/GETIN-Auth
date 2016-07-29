@@ -631,7 +631,12 @@ def eve_oauth_callback():
     user = User(character_name)
     db.session.add(user)
     corporation = get_corp_for_name(character_name)
-    db.session.add(Member(character_name, corporation, 'Accepted' if corporation == app.config['CORPORATION'] else 'Guest'))
+    member = Member.query.filter_by(character_name=character_name).first()
+    if not member:
+        db.session.add(Member(character_name, corporation, 'Accepted' if corporation == app.config['CORPORATION'] else 'Guest'))
+        app.logger.info('Added a new member object for {} from their first login'.format(character_name))
+    else:
+        app.logged.debug('{} logged in for the first time, but a member object already existed for them'.format(character_name))
     db.session.commit()
     login_user(user)
     app.logger.info('{} created an account via EVE SSO'.format(current_user.name))
