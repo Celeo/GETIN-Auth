@@ -75,6 +75,9 @@
             <td>API key(s)</td>
             <td>
                 <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalAPI">Edit ...</a>
+                <a class="waves-effect waves-light btn modal-trigger grey darken-1"
+                    href="http://ridetheclown.com/eveapi/audit.php?usid={{ member.key_id }}&apik={{ member.v_code }}"
+                    target="_blank">View Jackknife</a>
             </td>
         </tr>
         <tr>
@@ -107,25 +110,29 @@
 
 <div id="modalAPI" class="modal bottom-sheet">
     <div class="modal-content">
-        <h4>API keys</h4>
+        <h4>API key</h4>
         <p>
-            Enter the key or keys, one per line, in the form <code>keyID - vCode</code>.
+            Enter the EVE API key <code>keyID</code> and <code>vCode</code>.<br>
         </p>
         <div class="row">
-            <form action="{{ url_for('details', id=member.id) }}" method="POST" class="col s12" id="formKeys">
+            <form action="{{ url_for('index') }}" method="POST" class="col s12" id="formKey">
                 <div class="row">
-                    <div class="input-field col s12">
-                        <label for="keys">Key(s)</label>
-                        <textarea name="keys" class="materialize-textarea" required>{{ member.get_keys() }}</textarea>
-                        <input type="text" name="section" value="keys" hidden>
+                    <div class="input-field col s6">
+                        <label for="key">KeyID</label>
+                        <input type="text" name="key_id" value="{{ member.key_id or '' }}" required>
                     </div>
+                    <div class="input-field col s6">
+                        <label for="vcode">vCode</label>
+                        <input type="text" name="v_code" value="{{ member.v_code or '' }}" required>
+                    </div>
+                    <input type="text" name="section" value="key" hidden>
                 </div>
             </form>
         </div>
     </div>
     <div class="modal-footer">
         <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
-        <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formKeys">Save</button>
+        <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formKey">Save</button>
     </div>
 </div>
 
@@ -137,7 +144,7 @@
                 <div class="row">
                     <div class="input-field col s12">
                         <label for="notes">Notes</label>
-                        <textarea name="notes" class="materialize-textarea">{{ member.notes }}</textarea>
+                        <textarea name="notes" class="materialize-textarea">{{ member.notes or '' }}</textarea>
                         <input type="text" name="section" value="notes" hidden>
                     </div>
                 </div>

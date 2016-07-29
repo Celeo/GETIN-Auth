@@ -10,7 +10,7 @@
 {% endblock head %}
 
 {% block content %}
-{% if current_user.member.api_keys.count() == 0 %}
+{% if not current_user.member.key_id or not current_user.member.v_code %}
 <div class="card-panel red lighten-1 flashed">
     <p>
         You need to have at least 1 API Key on file
@@ -61,11 +61,9 @@
 
 <div id="modalAPI" class="modal bottom-sheet">
     <div class="modal-content">
-        <h4>API keys</h4>
+        <h4>API key</h4>
         <p>
-            Enter your key or keys, one per line, in the form <code>keyID - vCode</code>.<br>
-            If your keyID was <code>10000</code> and vCode <code>aaaaaaaaa</code>, then you'd enter
-            <code>10000 - aaaaaaaaa</code> on the first line.<br>
+            Enter your EVE API key <code>keyID</code> and <code>vCode</code>.<br>
             If you need to create a new key, use
             <a href="https://community.eveonline.com/support/api-key/CreatePredefined?accessMask={{ config['API_KEY_MASK'] }}" target="_blank">
             this link</a> and be sure to check <i>No Expiry</i>.
@@ -73,9 +71,13 @@
         <div class="row">
             <form action="{{ url_for('index') }}" method="POST" class="col s12" id="formKeys">
                 <div class="row">
-                    <div class="input-field col s12">
-                        <label for="keys">Key(s)</label>
-                        <textarea name="keys" class="materialize-textarea" required>{{ current_user.member.get_keys() }}</textarea>
+                    <div class="input-field col s6">
+                        <label for="key">KeyID</label>
+                        <input type="text" name="key_id" value="{{ current_user.member.key_id }}" required>
+                    </div>
+                    <div class="input-field col s6">
+                        <label for="vcode">vCode</label>
+                        <input type="text" name="v_code" value="{{ current_user.member.v_code }}" required>
                     </div>
                 </div>
             </form>

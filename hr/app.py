@@ -7,7 +7,7 @@ from preston.crest import Preston as CREST
 from preston.xmlapi import Preston as XMLAPI
 
 from hr.shared import db
-from hr.models import User, Member, APIKey
+from hr.models import User, Member
 from hr.reddit_oauth import RedditOAuth
 
 
@@ -83,43 +83,42 @@ def index():
     """
     if request.method == 'POST':
         app.logger.debug('POST on index by {}'.format(current_user.name))
-        keys = request.form['keys']
-        validate_keys(keys, current_user.member)
+        key_id = request.form['key_id']
+        v_code = request.form['v_code']
+        validate_key(key_id, v_code, current_user.member)
         return redirect(url_for('index'))
     reddit_link = reddit_oauth.get_authorize_url()
     return render_template('personal.html', reddit_link=reddit_link)
 
 
-def validate_keys(keys, member):
+def validate_key(key_id, v_code, member):
     """
     This method validates a single- or multi-line string of API
     keys and codes separated by ' - ' against the EVE API to
     verify that they have the correct access mask.
 
     Args:
-        keys (str) - text to parse and validate
+        key_id (str) - EVE API key keyID
+        v_code (str) - EVE API key vCode
         member (hr.models.Member) - Member to update if the keys are valid
 
     Returns:
         value (bool) if all keys were valid
     """
     errors = []
-    for key in keys.splitlines():
-        if not key:
-            continue
-        try:
-            keyID, vCode = key.strip().split(' - ')
-            auth = XMLAPI(key=keyID, code=vCode, user_agent=user_agent)
-            result = auth.account.APIKeyInfo()
-            if not int(result['key']['@accessMask']) == app.config['API_KEY_MASK']:
-                errors.append('The key with ID "{}" has the wrong access mask. Has: {}, needs: {}'.format(
-                    keyID, result['key']['@accessMask'], app.config['API_KEY_MASK']
-                ))
-        except Exception as e:
-            errors.append('An error occurred with line "{}"'.format(key))
-            errors.append('An error occurred with line "{}": {}'.format(key, str(e)))
+    try:
+        auth = XMLAPI(key=key_id, code=v_code, user_agent=user_agent)
+        result = auth.account.APIKeyInfo()
+        if not int(result['key']['@accessMask']) == app.config['API_KEY_MASK']:
+            errors.append('The key with ID "{}" has the wrong access mask. Has: {}, needs: {}'.format(
+                key_id, result['key']['@accessMask'], app.config['API_KEY_MASK']
+            ))
+    except Exception as e:
+        errors.append('An error occurred with keyID "{}"'.format(key_id))
+        errors.append('An error occurred with keyID "{}": {}'.format(key_id, str(e)))
     if not errors and member:
-        member.set_api_keys(keys.splitlines())
+        member.key_id = key_id
+        member.v_code = v_code
         db.session.commit()
         flash('API key information saved', 'success')
     else:
@@ -186,14 +185,14 @@ def add_member():
         app.logger.debug('POST on add_member by {}: name = {}, reddit = {}, status = {}, main = {}'.format(
             current_user.name, name, reddit, status, main
         ))
-        if not validate_keys('{} - {}'.format(apikey, apicode), None):
+        if not validate_key('{} - {}'.format(apikey, apicode), None):
             app.logger.info('POST on add_member didn\'t have a valid key')
+            flash('Invalid key for user', 'danger')
             return redirect(url_for('add_member'))
-        member = Member(name, get_corp_for_name(name), status, reddit, main, notes)
+        member = Member(name, get_corp_for_name(name), status, reddit, main, notes, apikey, apicode)
         app.logger.info('New member added through add_member: ' + str(name))
         db.session.add(member)
         db.session.commit()
-        db.session.add(APIKey(member.id, apikey, apicode))
         db.session.commit()
         flash('Character added', 'success')
     return render_template('add_member.html', all_members=get_all_member_names())
@@ -327,7 +326,7 @@ def details(id):
             app.logger.info('POST on details - keys by {} for {}'.format(
                 current_user.name, member.character_name
             ))
-            validate_keys(request.form['keys'], member)
+            validate_key(request.form['keys'], member)
         elif request.form['section'] == 'status':
             app.logger.info('POST on details - status by {} for {}: {}'.format(
                 current_user.name, member.character_name, request.form['status']
@@ -446,7 +445,8 @@ def join():
                 return redirect(url_for('join'))
             current_user.member.status = 'New'
             current_user.member.main = main
-            db.session.add(APIKey(current_user.member.id, key, code))
+            current_user.member.key_id = key
+            current_user.member.v_code = code
             db.session.commit()
             new_apps.append(current_user.name)
             flash('Your application is in - someone will take a look soon', 'success')
@@ -552,7 +552,7 @@ def reports():
                 invalid_mains.append(member)
             elif [m for m in members if m.character_name == member.main][0].status == 'Left':
                 defunct_alts.append(member)
-        if not member.get_keys():
+        if not member.key_id or not member.v_code:
             missing_api_keys.append(member)
     return render_template('reports.html', defunct_alts=defunct_alts, invalid_mains=invalid_mains, missing_api_keys=missing_api_keys)
 
@@ -765,20 +765,18 @@ def api_keys():
     """
     app.logger.info('API endpoint keys accessed')
     invalid_keys = []
-    for pair in APIKey.query.all():
-        if pair.member.status == 'Left':
-            continue
+    for member in Member.query.filter(Member.status != 'Left').all():
         try:
-            auth = XMLAPI(key=pair.key, code=pair.code, user_agent=user_agent)
+            auth = XMLAPI(key=member.key_id, code=member.v_code, user_agent=user_agent)
             result = auth.account.APIKeyInfo()
             if not int(result['key']['@accessMask']) == app.config['API_KEY_MASK']:
-                invalid_keys.append(pair.member.character_name)
-                app.logger.warning('-- ' + pair.member.character_name + ' has an invalid API key!')
+                invalid_keys.append(member.character_name)
+                app.logger.warning('-- ' + member.character_name + ' has an invalid API key!')
             else:
-                app.logger.debug('-- ' + pair.member.character_name + ' has a valid API key')
+                app.logger.debug('-- ' + member.character_name + ' has a valid API key')
         except Exception:
-            invalid_keys.append(pair.member.character_name)
-            app.logger.warning('-- ' + pair.member.character_name + ' has an invalid API key!')
+            invalid_keys.append(member.character_name)
+            app.logger.warning('-- ' + member.character_name + ' has an invalid API key!')
     return jsonify(invalid_keys)
 
 
