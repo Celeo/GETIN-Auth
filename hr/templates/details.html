@@ -72,8 +72,12 @@
             </td>
         </tr>
         <tr>
-            <td>API key(s)</td>
+            <td>API key</td>
             <td>
+                {% if member.key_id and member.v_code %}
+                    <span>{{ member.key_id }}</span><br>
+                    <span>{{ member.v_code }}</span><br>
+                {% endif %}
                 <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalAPI">Edit ...</a>
                 <a class="waves-effect waves-light btn modal-trigger grey darken-1"
                     href="http://ridetheclown.com/eveapi/audit.php?usid={{ member.key_id }}&apik={{ member.v_code }}"
