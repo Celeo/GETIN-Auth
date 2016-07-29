@@ -90,8 +90,12 @@
     <form action="{{ url_for('admin') }}" method="POST" class="col s12">
         <div class="row">
             <div class="input-field col s6">
-                <label for="name">Character (full) name</label>
-                <input type="text" name="name" required>
+                <select name="name" id="name">
+                    {% for member in all_members %}
+                        <option value="{{ member }}">{{ member }}</option>
+                    {% endfor %}
+                </select>
+                <label for="name">Name</label>
             </div>
         </div>
         <div class="col s6">

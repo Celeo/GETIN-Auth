@@ -236,7 +236,7 @@ def admin():
     recruiters = Member.query.filter_by(status='Recruiter').all()
     recruiters.extend([user.member for user in User.query.filter_by(admin=True).all()])
     recruiters = sorted(set(recruiters), key=lambda x: x.character_name)
-    return render_template('admin.html', admins=admins, recruiters=recruiters)
+    return render_template('admin.html', admins=admins, recruiters=recruiters, all_members=get_all_member_names())
 
 
 @app.route('/admin/set_status', methods=['POST'])
