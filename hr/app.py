@@ -148,8 +148,9 @@ def membership():
     show_applications = request.args.get('show_applications', 0, type=bool)
     members = Member.query.filter_by(hidden=show_hidden).all()
     if show_applications:
+        print('Filtering to ** show_applications **')
         members = [member for member in members if member.status in
-            ['Guest', 'New', 'Ready to be interviewed', 'Ready to be accepted']]
+            ['New', 'Ready to be interviewed', 'Ready to be accepted']]
     members = sorted(members, key=lambda x: x.character_name)
     return render_template('membership.html',
         members=members, show_hidden=show_hidden, show_applications=show_applications)
