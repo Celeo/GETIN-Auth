@@ -67,5 +67,9 @@ class Member(db.Model):
     def user(self):
         return User.query.filter_by(name=self.character_name).first()
 
+    def get_alts(self):
+        return list(map(lambda x: x.character_name,
+            Member.query.filter(Member.main == self.character_name).filter(Member.character_name != self.character_name).all()))
+
     def __str__(self):
         return '<Member-{}>'.format(self.character_name)

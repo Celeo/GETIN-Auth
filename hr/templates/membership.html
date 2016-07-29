@@ -53,6 +53,7 @@
                                             <th>Timestamp</th>
                                             <th>Status</th>
                                             <th>Main</th>
+                                            <th>Alts</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -62,6 +63,7 @@
                                             <td>{{ member.date }}</td>
                                             <td>{{ member.status }}</td>
                                             <td>{{ member.main }}</td>
+                                            <td>{{ member.get_alts() | join(', ') }}</td>
                                             <td class="small">
                                                 <a href="{{ url_for('details', id=member.id) }}"
                                                     class="btn waves-effect waves-light btn-small grey darken-1">
