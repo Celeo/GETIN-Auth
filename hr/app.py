@@ -666,6 +666,12 @@ def reddit_oauth_callback():
     app.logger.debug('Reddit callback by {}'.format(current_user.name))
     username = reddit_oauth.get_token(request.args['code'])
     current_user.member.reddit = username
+    app.logger.info('{} updated their reddit account to {}'.format(current_user.name, username))
+    for member in Member.query.filter_by(main=current_user.member.character_name).all():
+        member.reddit = username
+        app.logger.info('{} updated their alt {} reddit account to {}'.format(
+            current_user.name, member.character_name, username
+        ))
     db.session.commit()
     return redirect(url_for('index'))
 
