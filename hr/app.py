@@ -552,7 +552,7 @@ def reports():
                 invalid_mains.append(member)
             else:
                 main = [m for m in members if m.character_name == member.main]
-                if len(main) > 0 and main[0].status == 'Left':
+                if (len(main) > 0 and main[0].status == 'Left') or not main:
                     defunct_alts.append(member)
         if not member.key_id or not member.v_code:
             missing_api_keys.append(member)
