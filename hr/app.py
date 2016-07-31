@@ -550,8 +550,10 @@ def reports():
         if member.character_name != member.main:
             if member.main not in member_names:
                 invalid_mains.append(member)
-            elif [m for m in members if m.character_name == member.main][0].status == 'Left':
-                defunct_alts.append(member)
+            else:
+                main = [m for m in members if m.character_name == member.main]
+                if len(main) > 0 and main[0].status == 'Left':
+                    defunct_alts.append(member)
         if not member.key_id or not member.v_code:
             missing_api_keys.append(member)
     return render_template('reports.html', defunct_alts=defunct_alts, invalid_mains=invalid_mains, missing_api_keys=missing_api_keys)
