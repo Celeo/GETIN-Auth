@@ -149,7 +149,7 @@ def membership():
     if show_applications:
         members = [member for member in members if member.status in
             ['New', 'Ready to be interviewed', 'Ready to be accepted']]
-    members = sorted(members, key=lambda x: x.character_name)
+    members = sorted(members, key=lambda x: x.character_name.lower())
     return render_template('membership.html',
         members=members, show_hidden=show_hidden, show_applications=show_applications)
 
@@ -850,4 +850,4 @@ def get_all_member_names():
     Returns:
         value (list) of string names
     """
-    return sorted(list(map(lambda x: x.character_name, Member.query.all())))
+    return sorted(list(map(lambda x: x.character_name.lower(), Member.query.all())))

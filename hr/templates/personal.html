@@ -73,11 +73,11 @@
                 <div class="row">
                     <div class="input-field col s6">
                         <label for="key">KeyID</label>
-                        <input type="text" name="key_id" value="{{ current_user.member.key_id }}" required>
+                        <input type="text" name="key_id" value="{{ current_user.member.key_id or '' }}" required>
                     </div>
                     <div class="input-field col s6">
                         <label for="vcode">vCode</label>
-                        <input type="text" name="v_code" value="{{ current_user.member.v_code }}" required>
+                        <input type="text" name="v_code" value="{{ current_user.member.v_code or '' }}" required>
                     </div>
                 </div>
             </form>
