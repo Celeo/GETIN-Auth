@@ -499,7 +499,8 @@ def sync_members():
         if not db_model:
             app.logger.info('-- Added {} to the corporation'.format(name))
             existing_members.append(name)
-            db.session.add(Member(name, app.config['CORPORATION'], 'Accepted'))
+            db_model = Member(name, app.config['CORPORATION'], 'Accepted')
+            db.session.add(db_model)
         db_model.corporation = app.config['CORPORATION']
         if db_model.status not in ['Accepted', 'Recruiter']:
             db_model.status = 'Accepted'
