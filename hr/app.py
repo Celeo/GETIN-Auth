@@ -507,6 +507,7 @@ def sync_members():
             new_members.append(name)
             app.logger.info('-- {} has been accepted into the corporation'.format(name))
         api_members.append(name)
+    app.logger.debug('Full corp roster: ' + ', '.join(api_members))
     for member in Member.query.filter_by(status='Accepted').all():
         if member.character_name not in api_members:
             app.logger.warning('-- ' + member.character_name + ' is not in the corporation')
