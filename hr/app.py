@@ -5,6 +5,7 @@ from flask import Flask, render_template, redirect, request, url_for, flash, ses
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from preston.crest import Preston as CREST
 from preston.xmlapi import Preston as XMLAPI
+from sqlalchemy import or_
 
 from hr.shared import db
 from hr.models import User, Member
@@ -141,7 +142,7 @@ def membership():
     Returns:
         rendered template 'membership.html'
     """
-    if not current_user.member.status == 'Recruiter' and not current_user.admin:
+    if not current_user.recruiter and not current_user.mentor and not current_user.admin:
         return redirect(url_for('index'))
     show_hidden = request.args.get('show_hidden', 0, type=bool)
     show_applications = request.args.get('show_applications', 0, type=bool)
@@ -170,7 +171,7 @@ def add_member():
     Returns:
         rendered template 'add_applicant.html'
     """
-    if not current_user.member.status == 'Recruiter' and not current_user.admin:
+    if not current_user.recruiter and not current_user.admin:
         return redirect(url_for('index'))
     if request.method == 'POST':
         name = request.form.get('name')
@@ -226,15 +227,20 @@ def admin():
         if not member:
             flash('Unknown member', 'error')
             return redirect(url_for('admin'))
-        member.status = 'Recruiter'
+        member.status = 'Accepted'
+        if request.form['role'] == 'Recruiter':
+            member.user.recruiter = True
+        if request.form['role'] == 'Mentor':
+            member.user.mentor = True
         db.session.commit()
-        flash(member.character_name + ' promoted to recruiter', 'success')
+        flash(member.character_name + ' promoted to ' + request.form['role'], 'success')
         return redirect(url_for('admin'))
     admins = ', '.join([user.name for user in User.query.filter_by(admin=True).all()])
-    recruiters = Member.query.filter_by(status='Recruiter').all()
-    recruiters.extend([user.member for user in User.query.filter_by(admin=True).all()])
+    recruiters = [user.member for user in User.query.filter(or_(User.recruiter, User.admin)).all()]
+    mentors = [user.member for user in User.query.filter(or_(User.mentor, User.admin)).all()]
     recruiters = sorted(set(recruiters), key=lambda x: x.character_name)
-    return render_template('admin.html', admins=admins, recruiters=recruiters, all_members=get_all_member_names())
+    mentors = sorted(set(mentors), key=lambda x: x.character_name)
+    return render_template('admin.html', admins=admins, recruiters=recruiters, mentors=mentors, all_members=get_all_member_names())
 
 
 @app.route('/admin/set_status', methods=['POST'])
@@ -272,9 +278,9 @@ def admin_set_status():
     return redirect(url_for('admin'))
 
 
-@app.route('/admin/revoke/<name>')
+@app.route('/admin/revoke/<name>/<role>')
 @login_required
-def revoke_access(name):
+def revoke_access(name, role):
     """
     This transient endpoint allows an admin to revoke the recruiter
     status of a member.
@@ -292,6 +298,10 @@ def revoke_access(name):
         flash('Unknown member name', 'error')
         return redirect(url_for('admin'))
     member.status = 'Accepted'
+    if role == 'Recruiter':
+        member.user.recruiter = False
+    elif role == 'Mentor':
+        member.user.mentor = False
     db.session.commit()
     flash('User access revoked for ' + name, 'success')
     return redirect(url_for('admin'))
@@ -313,7 +323,7 @@ def details(id):
     Returns:
         rendered template 'details.html'
     """
-    if not current_user.member.status == 'Recruiter' and not current_user.admin:
+    if not current_user.recruiter and not current_user.mentor and not current_user.admin:
         app.logger.debug('Details access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
     member = Member.query.get(id)
@@ -351,6 +361,32 @@ def details(id):
             member.notes = request.form['notes']
             db.session.commit()
             flash('Notes changed', 'success')
+        elif request.form['section'] == 'training':
+            app.logger.info('POST on details - training by {} for {}'.format(
+                current_user.name, member.character_name
+            ))
+            member.know_good_fits = 'know_good_fits' in request.form
+            member.know_scan = 'know_scan' in request.form
+            member.know_mass_and_time = 'know_mass_and_time' in request.form
+            member.know_organize_gank = 'know_organize_gank' in request.form
+            member.know_when_to_pve = 'know_when_to_pve' in request.form
+            member.know_comms = 'know_comms' in request.form
+            member.know_appropriate_ships = 'know_appropriate_ships' in request.form
+            member.know_intel = 'know_intel' in request.form
+            member.know_pvp = 'know_pvp' in request.form
+            member.know_doctrine = 'know_doctrine' in request.form
+            for alt in member.get_alts():
+                alt.know_good_fits = member.know_good_fits
+                alt.know_scan = member.know_scan
+                alt.know_mass_and_time = member.know_mass_and_time
+                alt.know_organize_gank = member.know_organize_gank
+                alt.know_when_to_pve = member.know_when_to_pve
+                alt.know_comms = member.know_comms
+                alt.know_appropriate_ships = member.know_appropriate_ships
+                alt.know_intel = member.know_intel
+                alt.know_pvp = member.know_pvp
+                alt.know_doctrine = member.know_doctrine
+            db.session.commit()
         else:
             flash('Unknown form submission', 'error')
         return redirect(url_for('details', id=id))
@@ -372,7 +408,7 @@ def visibility(id, action):
     Returns:
         redirect to the member's details endpoint
     """
-    if not current_user.member.status == 'Recruiter' and not current_user.admin:
+    if not current_user.recruiter and not current_user.admin:
         app.logger.debug('Visibility access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
     member = Member.query.get(id)
@@ -541,7 +577,7 @@ def reports():
     Returns:
         Rendered template 'reports.html'
     """
-    if not current_user.member.status == 'Recruiter' and not current_user.admin:
+    if not current_user.recruiter and not current_user.admin:
         app.logger.debug('Visibility access denied to {}'.format(current_user.name))
         return redirect(url_for('index'))
     members = Member.query.filter(Member.status != 'Left').all()

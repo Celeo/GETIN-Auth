@@ -45,6 +45,7 @@
                     <option value="Ready to be accepted">Ready to be accepted</option>
                     <option value="Accepted">Accepted</option>
                     <option value="Recruiter">Recruiter</option>
+                    <option value="Mentor">Mentor</option>
                     <option value="Left">Left</option>
                 </select>
                 <label for="status">Status</label>
@@ -72,11 +73,11 @@
         <tbody>
             {% for member in recruiters %}
                 <tr>
-                    <td>{{ member.character_name }}</td>
+                    <td><a href="{{ url_for('details', id=member.id) }}">{{ member.character_name }}</a></td>
                     {% if member.user.admin %}
                         <td>This user is an admin</td>
                     {% else %}
-                        <td><a href="{{ url_for('revoke_access', name=member.character_name) }}"
+                        <td><a href="{{ url_for('revoke_access', name=member.character_name, role='Recruiter') }}"
                             class="btn waves-efect waves-light red">Revoke</a></td>
                     {% endif %}
                 </tr>
@@ -98,6 +99,54 @@
                 <label for="name">Name</label>
             </div>
         </div>
+        <input type="hidden" name="role" value="Recruiter">
+        <div class="col s6">
+            <button class="btn waves-effect waves-light grey darken-1" type="submit" name="action">Add
+                <i class="material-icons right">send</i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="card-panel">
+    <h4>The following people are mentors</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Revoke?</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in mentors %}
+                <tr>
+                    <td><a href="{{ url_for('details', id=member.id) }}">{{ member.character_name }}</a></td>
+                    {% if member.user.admin %}
+                        <td>This user is an admin</td>
+                    {% else %}
+                        <td><a href="{{ url_for('revoke_access', name=member.character_name, role='Mentor') }}"
+                            class="btn waves-efect waves-light red">Revoke</a></td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card-panel">
+    <h4>Add a mentor</h4>
+    <form action="{{ url_for('admin') }}" method="POST" class="col s12">
+        <div class="row">
+            <div class="input-field col s6">
+                <select name="name" id="name">
+                    {% for member in all_members %}
+                        <option value="{{ member }}">{{ member }}</option>
+                    {% endfor %}
+                </select>
+                <label for="name">Name</label>
+            </div>
+        </div>
+        <input type="hidden" name="role" value="Mentor">
         <div class="col s6">
             <button class="btn waves-effect waves-light grey darken-1" type="submit" name="action">Add
                 <i class="material-icons right">send</i>

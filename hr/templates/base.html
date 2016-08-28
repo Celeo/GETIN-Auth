@@ -36,9 +36,11 @@
                 {% if not current_user.is_anonymous %}
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('index') }}">My info</a></li>
-                        {% if current_user.member.status == 'Recruiter' or current_user.admin %}
+                        {% if current_user.recruiter or current_user.mentor or current_user.admin %}
                             <li><a href="{{ url_for('membership') }}">Members</a></li>
-                            <li><a href="{{ url_for('reports') }}">Reports</a></li>
+                            {% if current_user.recruiter or current_user.admin %}
+                                <li><a href="{{ url_for('reports') }}">Reports</a></li>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                     {% if current_user.admin %}

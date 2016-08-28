@@ -4,9 +4,11 @@
 {% block content %}
 <div class="clearfix">
     <h2 class="left">Members and Applicants</h2>
+{% if current_user.recruiter or current_user.admin %}
     <a class="right btn-floating btn-large waves-effect waves-light grey darken-1" href="{{ url_for('add_member') }}">
         <i class="material-icons">add</i>
     </a>
+{% endif %}
 </div>
 
 <div class="row pad-top">
@@ -63,7 +65,7 @@
                                             <td>{{ member.date }}</td>
                                             <td>{{ member.status }}</td>
                                             <td>{{ member.main }}</td>
-                                            <td>{{ member.get_alts() | join(', ') }}</td>
+                                            <td>{{ member.get_alt_names() | join(', ') }}</td>
                                             <td class="small">
                                                 <a href="{{ url_for('details', id=member.id) }}"
                                                     class="btn waves-effect waves-light btn-small grey darken-1">

@@ -46,6 +46,7 @@
         <tr>
             <td>Membership status</td>
             <td>
+{% if current_user.recruiter or current_user.admin %}
                 <form action="{{ url_for('details', id=member.id) }}" method="POST" class="row">
                     <div class="col s4">
                         <select name="status">
@@ -62,15 +63,22 @@
                     </div>
                     <input type="text" name="section" value="status" hidden>
                 </form>
+{% else %}
+                {{ member.status }}
+{% endif %}
             </td>
         </tr>
         <tr>
             <td>Main</td>
             <td>
-                {{ member.main }}<br>
+                {{ member.main }}
+{% if current_user.recruiter or current_user.admin %}
+                <br>
                 <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalMain">Edit ...</a>
+{% endif %}
             </td>
         </tr>
+{% if current_user.recruiter or current_user.admin %}
         <tr>
             <td>API key</td>
             <td>
@@ -102,13 +110,60 @@
                 {% endif%}
             </td>
         </tr>
-        {% if current_user.admin %}
+{% endif %}
+{% if current_user.mentor or current_user.admin %}
+        <tr>
+            <td>Training</td>
+            <td>
+                <form action="{{ url_for('details', id=member.id) }}" method="POST">
+                    <input type="checkbox" class="filled-in" name="know_good_fits"
+                        id="training_know_good_fits"{% if member.know_good_fits %} checked="checked"{% endif %}>
+                    <label for="training_know_good_fits">Good fits</label>
+                    <input type="checkbox" class="filled-in" name="know_scan"
+                        id="training_know_scan"{% if member.know_scan %} checked="checked"{% endif %}>
+                    <label for="training_know_scan">Scanning</label>
+                    <input type="checkbox" class="filled-in" name="know_mass_and_time"
+                        id="training_know_mass_and_time"{% if member.know_mass_and_time %} checked="checked"{% endif %}>
+                    <label for="training_know_mass_and_time">Mass and time</label>
+                    <input type="checkbox" class="filled-in" name="know_organize_gank"
+                        id="training_know_organize_gank"{% if member.know_organize_gank %} checked="checked"{% endif %}>
+                    <label for="training_know_organize_gank">Organize a gank</label>
+                    <br>
+                    <input type="checkbox" class="filled-in" name="know_when_to_pve"
+                        id="training_know_when_to_pve"{% if member.know_when_to_pve %} checked="checked"{% endif %}>
+                    <label for="training_know_when_to_pve">When to PVE</label>
+                    <input type="checkbox" class="filled-in" name="know_comms"
+                        id="training_know_comms"{% if member.know_comms %} checked="checked"{% endif %}>
+                    <label for="training_know_comms">Comms</label>
+                    <input type="checkbox" class="filled-in" name="know_appropriate_ships"
+                        id="training_know_appropriate_ships"{% if member.know_appropriate_ships %} checked="checked"{% endif %}>
+                    <label for="training_know_appropriate_ships">Appropriate ships</label>
+                    <input type="checkbox" class="filled-in" name="know_intel"
+                        id="training_know_intel"{% if member.know_intel %} checked="checked"{% endif %}>
+                    <label for="training_know_intel">Intel</label>
+                    <br>
+                    <input type="checkbox" class="filled-in" name="know_pvp"
+                        id="training_know_pvp"{% if member.know_pvp %} checked="checked"{% endif %}>
+                    <label for="training_know_pvp">PVE</label>
+                    <input type="checkbox" class="filled-in" name="know_doctrine"
+                        id="training_know_doctrine"{% if member.know_doctrine %} checked="checked"{% endif %}>
+                    <label for="training_know_doctrine">Doctrine</label>
+                    <br>
+                    <input type="text" name="section" value="training" hidden>
+                    <button type="submit" class="waves-effect waves-light btn grey darken-1">Save</button>
+                </form>
+            </td>
+        </tr>
+{% endif %}
+{% if current_user.admin %}
         <tr>
             <td>Delete</td>
-            <td><a class="waves-effect waves-light btn modal-trigger red"
-                href="#modalDelete">Permanently delete user ...</a></td>
+            <td>
+                <a class="waves-effect waves-light btn modal-trigger red"
+                    href="#modalDelete">Permanently delete user ...</a>
+            </td>
         </tr>
-        {% endif %}
+{% endif %}
     </tbody>
 </table>
 
