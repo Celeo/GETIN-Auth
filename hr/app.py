@@ -473,8 +473,16 @@ def join():
             code = request.form['code']
             auth = XMLAPI(key=key, code=code, user_agent=user_agent)
             main = request.form.get('main')
+            reddit = None
             if main == '*':
                 main = current_user.member.character_name
+            else:
+                try:
+                    reddit = Member.query.filter_by(character_name=main).first().reddit
+                except Exception:
+                    app.logger.warning('{} tried to set {} as their main, but that Member object wasn\'t found'.format(
+                        current_user.name, main
+                    ))
             result = auth.account.APIKeyInfo()
             if not int(result['key']['@accessMask']) == app.config['API_KEY_MASK']:
                 flash('Wrong key mask - you need {}'.format(app.config['API_KEY_MASK']), 'error')
@@ -483,6 +491,7 @@ def join():
             current_user.member.main = main
             current_user.member.key_id = key
             current_user.member.v_code = code
+            current_user.member.reddit = reddit
             db.session.commit()
             new_apps.append(current_user.name)
             flash('Your application is in - someone will take a look soon', 'success')
