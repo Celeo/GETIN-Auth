@@ -56,6 +56,52 @@
                 <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalAPI">Edit</a>
             </td>
         </tr>
+        <tr>
+            <td>Training Progress</td>
+            <td>
+                <input type="checkbox" class="filled-in" name="know_good_fits"
+                    id="training_know_good_fits"{% if current_user.member.know_good_fits %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_good_fits">Good fits</label>
+                <input type="checkbox" class="filled-in" name="know_scan"
+                    id="training_know_scan"{% if current_user.member.know_scan %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_scan">Scanning</label>
+                <input type="checkbox" class="filled-in" name="know_mass_and_time"
+                    id="training_know_mass_and_time"{% if current_user.member.know_mass_and_time %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_mass_and_time">Mass and time</label>
+                <input type="checkbox" class="filled-in" name="know_organize_gank"
+                    id="training_know_organize_gank"{% if current_user.member.know_organize_gank %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_organize_gank">Organize a gank</label>
+                <input type="checkbox" class="filled-in" name="know_when_to_pve"
+                    id="training_know_when_to_pve"{% if current_user.member.know_when_to_pve %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_when_to_pve">When to PVE</label>
+                <br>
+                <input type="checkbox" class="filled-in" name="know_comms"
+                    id="training_know_comms"{% if current_user.member.know_comms %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_comms">Comms</label>
+                <input type="checkbox" class="filled-in" name="know_appropriate_ships"
+                    id="training_know_appropriate_ships"{% if current_user.member.know_appropriate_ships %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_appropriate_ships">Appropriate ships</label>
+                <input type="checkbox" class="filled-in" name="know_intel"
+                    id="training_know_intel"{% if current_user.member.know_intel %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_intel">Intel</label>
+                <input type="checkbox" class="filled-in" name="know_pvp"
+                    id="training_know_pvp"{% if current_user.member.know_pvp %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_pvp">PVE</label>
+                <input type="checkbox" class="filled-in" name="know_doctrine"
+                    id="training_know_doctrine"{% if current_user.member.know_doctrine %} checked="checked"{% endif %}
+                    disabled="disabled">
+                <label for="training_know_doctrine">Doctrine</label>
+            </td>
+        </tr>
     </tbody>
 </table>
 
