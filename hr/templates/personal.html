@@ -59,47 +59,103 @@
         <tr>
             <td>Training Progress</td>
             <td>
-                <input type="checkbox" class="filled-in" name="know_good_fits"
-                    id="training_know_good_fits"{% if current_user.member.know_good_fits %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_good_fits">Good fits</label>
-                <input type="checkbox" class="filled-in" name="know_scan"
-                    id="training_know_scan"{% if current_user.member.know_scan %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_scan">Scanning</label>
-                <input type="checkbox" class="filled-in" name="know_mass_and_time"
-                    id="training_know_mass_and_time"{% if current_user.member.know_mass_and_time %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_mass_and_time">Mass and time</label>
-                <input type="checkbox" class="filled-in" name="know_organize_gank"
-                    id="training_know_organize_gank"{% if current_user.member.know_organize_gank %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_organize_gank">Organize a gank</label>
-                <input type="checkbox" class="filled-in" name="know_when_to_pve"
-                    id="training_know_when_to_pve"{% if current_user.member.know_when_to_pve %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_when_to_pve">When to PVE</label>
-                <br>
-                <input type="checkbox" class="filled-in" name="know_comms"
-                    id="training_know_comms"{% if current_user.member.know_comms %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_comms">Comms</label>
-                <input type="checkbox" class="filled-in" name="know_appropriate_ships"
-                    id="training_know_appropriate_ships"{% if current_user.member.know_appropriate_ships %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_appropriate_ships">Appropriate ships</label>
-                <input type="checkbox" class="filled-in" name="know_intel"
-                    id="training_know_intel"{% if current_user.member.know_intel %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_intel">Intel</label>
-                <input type="checkbox" class="filled-in" name="know_pvp"
-                    id="training_know_pvp"{% if current_user.member.know_pvp %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_pvp">PVE</label>
-                <input type="checkbox" class="filled-in" name="know_doctrine"
-                    id="training_know_doctrine"{% if current_user.member.know_doctrine %} checked="checked"{% endif %}
-                    disabled="disabled">
-                <label for="training_know_doctrine">Doctrine</label>
+                <table class="table col s6">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_good_fits" disabled
+                                    id="training_know_good_fits"{% if current_user.member.know_good_fits %} checked="checked"{% endif %}>
+                                <label for="training_know_good_fits" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Ability to fit a ship decently (no dual tank, no
+                                    armor Drakes, etc. - the basics)">
+                                    Good fits
+                                </label>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_scan" disabled
+                                    id="training_know_scan"{% if current_user.member.know_scan %} checked="checked"{% endif %}>
+                                <label for="training_know_scan" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Ability to scan and follow the scanning corp policies">
+                                    Scanning
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_mass_and_time" disabled
+                                    id="training_know_mass_and_time"{% if current_user.member.know_mass_and_time %} checked="checked"{% endif %}>
+                                <label for="training_know_mass_and_time" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Knowledge of how mass and time on a wormhole work">
+                                    Mass and time
+                                </label>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_organize_gank" disabled
+                                    id="training_know_organize_gank"{% if current_user.member.know_organize_gank %} checked="checked"{% endif %}>
+                                <label for="training_know_organize_gank" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Knowledge of how to get people together for a gank">
+                                    Organize a gank
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_when_to_pve" disabled
+                                    id="training_know_when_to_pve"{% if current_user.member.know_when_to_pve %} checked="checked"{% endif %}>
+                                <label for="training_know_when_to_pve" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Knowledge of the correct time to do PvE (doesn't PvE
+                                    in a hostile hole, etc.)">
+                                    When to PvE
+                                </label>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_comms" disabled
+                                    id="training_know_comms"{% if current_user.member.know_comms %} checked="checked"{% endif %}>
+                                <label for="training_know_comms" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Ability to use comms and apply comms discipline when needed">
+                                    Comms
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_appropriate_ships" disabled
+                                    id="training_know_appropriate_ships"{% if current_user.member.know_appropriate_ships %} checked="checked"{% endif %}>
+                                <label for="training_know_appropriate_ships" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Ability to field a ship that is appropriate for the situation">
+                                    Appropriate ships
+                                </label>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_intel" disabled
+                                    id="training_know_intel"{% if current_user.member.know_intel %} checked="checked"{% endif %}>
+                                <label for="training_know_intel" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Ability to collect and relay intel">
+                                    Intel
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_pvp" disabled
+                                    id="training_know_pvp"{% if current_user.member.know_pvp %} checked="checked"{% endif %}>
+                                <label for="training_know_pvp" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Ability to competently fly in a PvP scenario and remain calm">
+                                    PvP
+                                </label>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="filled-in" name="know_doctrine" disabled
+                                    id="training_know_doctrine"{% if current_user.member.know_doctrine %} checked="checked"{% endif %}>
+                                <label for="training_know_doctrine" class="tooltipped" data-position="bottom"
+                                    data-delay="50" data-tooltip="Ability fly a covops ship and the doctrine Vexor,
+                                    and the Sacrilege (or be training towards it)">
+                                    Doctrine
+                                </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </td>
         </tr>
     </tbody>
