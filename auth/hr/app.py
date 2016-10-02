@@ -1,7 +1,7 @@
 import logging
 from functools import wraps
 
-from flask import Flask, render_template, redirect, request, url_for, flash, session, abort, jsonify
+from flask import blueprint, render_template, redirect, request, url_for, flash, session, abort, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from preston.crest import Preston as CREST
 from preston.xmlapi import Preston as XMLAPI
@@ -13,7 +13,7 @@ from hr.reddit_oauth import RedditOAuth
 
 
 # Create and configure app
-app = Flask(__name__)
+app = blueprint('hr')
 app.config.from_pyfile('config.cfg')
 # EVE XML API connection
 user_agent = 'GETIN HR app ({})'.format(app.config['CONTACT_EMAIL'])

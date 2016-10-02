@@ -12,10 +12,10 @@ $ cd GETIN-Auth
 $ virtualenv env
 $ . env/bin/activate
 $ pip install -r requirements.txt
-$ cp hr/config.cfg.example hr/config.cfg
+$ cp auth/config.cfg.example auth/config.cfg
 ```
 
-Edit `hr/config.cfg`, supplying the access string to your database (SQLite works fine) and your EVE third party app information.
+Edit `auth/config.cfg`, supplying the access string to your database (SQLite works fine) and your EVE third party app information.
 
 ```bash
 $ ./gunicorn_run.sh

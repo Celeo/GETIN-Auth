@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+<script>
+  $(document).ready(function() {
+    $('.modal-trigger').leanModal();
+    $('select').material_select();
+  });
+</script>
+{% endblock head %}
+
+{% block content %}
+<h2>Member details page - {{ member.character_name }}</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Setting</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Character name</td>
+      <td>{{ member.character_name }}</td>
+    </tr>
+    <tr>
+      <td>Current corporation</td>
+      <td>{{ member.corporation }}</td>
+    </tr>
+    <tr>
+      <td>Reddit username</td>
+      <td>
+        {% if member.reddit %}
+          <a href="https://reddit.com/u/{{ member.reddit }}" target="_blank">{{ member.reddit }}</a>
+        {% else %}
+          No linked account
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td>Creation date</td>
+      <td>{{ member.date }}</td>
+    </tr>
+    <tr>
+      <td>Membership status</td>
+      <td>
+{% if current_user.recruiter or current_user.admin %}
+        <form action="{{ url_for('details', id=member.id) }}" method="POST" class="row">
+          <div class="col s4">
+            <select name="status">
+              <option value="{{ member.status }}" active>{{ member.status }}</option>
+              <option value="New">New</option>
+              <option value="Ready to be interviewed">Ready to be interviewed</option>
+              <option value="Ready to be accepted">Ready to be accepted</option>
+{% if current_user.admin %}
+              <option value="Accepted">Accepted</option>
+{% endif %}
+              <option value="Denied">Denied</option>
+            </select>
+          </div>
+          <div class="col s4">
+            <button class="waves-effect waves-light btn grey darken-1" type="submit">Save</button>
+          </div>
+          <input type="text" name="section" value="status" hidden>
+        </form>
+{% else %}
+        {{ member.status }}
+{% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td>Main</td>
+      <td>
+        {{ member.main }}
+{% if current_user.recruiter or current_user.admin %}
+        <br>
+        <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalMain">Edit ...</a>
+{% endif %}
+      </td>
+    </tr>
+{% if current_user.recruiter or current_user.admin %}
+    <tr>
+      <td>API key</td>
+      <td>
+        {% if member.key_id and member.v_code %}
+          <span>{{ member.key_id }}</span><br>
+          <span>{{ member.v_code }}</span><br>
+        {% endif %}
+        <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalAPI">Edit ...</a>
+        <a class="waves-effect waves-light btn modal-trigger grey darken-1"
+          href="http://ridetheclown.com/eveapi/audit.php?usid={{ member.key_id }}&apik={{ member.v_code }}"
+          target="_blank">View Jackknife</a>
+      </td>
+    </tr>
+    <tr>
+      <td>Killboard</td>
+      <td><a class="waves-effect waves-light btn modal-trigger grey darken-1"
+          href="https://zkillboard.com/search/{{ member.character_name }}/"
+          target="_blank">View zKillBoard</a></td>
+    </tr>
+    <tr>
+      <td>Notes</td>
+      <td>
+        <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalNotes">Notes ...</a>
+      </td>
+    </tr>
+    <tr>
+      <td>Visibility</td>
+      <td>
+        {% if not member.hidden %}
+          <a class="waves-effect waves-light btn modal-trigger grey darken-1"
+            href="{{ url_for('visibility', id=member.id, action='hide') }}">Hide</a>
+        {% else %}
+          <a class="waves-effect waves-light btn modal-trigger grey darken-1"
+            href="{{ url_for('visibility', id=member.id, action='show') }}">Show</a>
+        {% endif%}
+      </td>
+    </tr>
+{% endif %}
+{% if current_user.mentor or current_user.admin %}
+    <tr>
+      <td>Training</td>
+      <td>
+        <form action="{{ url_for('details', id=member.id) }}" method="POST">
+          <table class="table col s6">
+            <tbody>
+              <tr>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_good_fits"
+                    id="training_know_good_fits"{% if member.know_good_fits %} checked="checked"{% endif %}>
+                  <label for="training_know_good_fits" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Ability to fit a ship decently (no dual tank, no
+                    armor Drakes, etc. - the basics)">
+                    Good fits
+                  </label>
+                </td>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_scan"
+                    id="training_know_scan"{% if member.know_scan %} checked="checked"{% endif %}>
+                  <label for="training_know_scan" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Ability to scan and follow the scanning corp policies">
+                    Scanning
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_mass_and_time"
+                    id="training_know_mass_and_time"{% if member.know_mass_and_time %} checked="checked"{% endif %}>
+                  <label for="training_know_mass_and_time" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Knowledge of how mass and time on a wormhole work">
+                    Mass and time
+                  </label>
+                </td>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_organize_gank"
+                    id="training_know_organize_gank"{% if member.know_organize_gank %} checked="checked"{% endif %}>
+                  <label for="training_know_organize_gank" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Knowledge of how to get people together for a gank">
+                    Organize a gank
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_when_to_pve"
+                    id="training_know_when_to_pve"{% if member.know_when_to_pve %} checked="checked"{% endif %}>
+                  <label for="training_know_when_to_pve" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Knowledge of the correct time to do PvE (doesn't PvE
+                    in a hostile hole, etc.)">
+                    When to PvE
+                  </label>
+                </td>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_comms"
+                    id="training_know_comms"{% if member.know_comms %} checked="checked"{% endif %}>
+                  <label for="training_know_comms" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Ability to use comms and apply comms discipline when needed">
+                    Comms
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_appropriate_ships"
+                    id="training_know_appropriate_ships"{% if member.know_appropriate_ships %} checked="checked"{% endif %}>
+                  <label for="training_know_appropriate_ships" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Ability to field a ship that is appropriate for the situation">
+                    Appropriate ships
+                  </label>
+                </td>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_intel"
+                    id="training_know_intel"{% if member.know_intel %} checked="checked"{% endif %}>
+                  <label for="training_know_intel" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Ability to collect and relay intel">
+                    Intel
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_pvp"
+                    id="training_know_pvp"{% if member.know_pvp %} checked="checked"{% endif %}>
+                  <label for="training_know_pvp" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Ability to competently fly in a PvP scenario and remain calm">
+                    PvP
+                  </label>
+                </td>
+                <td>
+                  <input type="checkbox" class="filled-in" name="know_doctrine"
+                    id="training_know_doctrine"{% if member.know_doctrine %} checked="checked"{% endif %}>
+                  <label for="training_know_doctrine" class="tooltipped" data-position="bottom"
+                    data-delay="50" data-tooltip="Ability fly a covops ship and the doctrine Vexor,
+                    and the Sacrilege (or be training towards it)">
+                    Doctrine
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <input type="text" name="section" value="training" hidden>
+          <button type="submit" class="waves-effect waves-light btn grey darken-1">Save</button>
+        </form>
+      </td>
+    </tr>
+{% endif %}
+{% if current_user.admin %}
+    <tr>
+      <td>Delete</td>
+      <td>
+        <a class="waves-effect waves-light btn modal-trigger red"
+          href="#modalDelete">Permanently delete user ...</a>
+      </td>
+    </tr>
+{% endif %}
+  </tbody>
+</table>
+
+<div id="modalAPI" class="modal bottom-sheet">
+  <div class="modal-content">
+    <h4>API key</h4>
+    <p>
+      Enter the EVE API key <code>keyID</code> and <code>vCode</code>.<br>
+    </p>
+    <div class="row">
+      <form action="{{ url_for('index') }}" method="POST" class="col s12" id="formKey">
+        <div class="row">
+          <div class="input-field col s6">
+            <label for="key">KeyID</label>
+            <input type="text" name="key_id" value="{{ member.key_id or '' }}" required>
+          </div>
+          <div class="input-field col s6">
+            <label for="vcode">vCode</label>
+            <input type="text" name="v_code" value="{{ member.v_code or '' }}" required>
+          </div>
+          <input type="text" name="section" value="key" hidden>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
+    <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formKey">Save</button>
+  </div>
+</div>
+
+<div id="modalNotes" class="modal bottom-sheet">
+  <div class="modal-content">
+    <h4>Notes</h4>
+    <div class="row">
+      <form action="{{ url_for('details', id=member.id) }}" method="POST" class="col s12" id="formNotes">
+        <div class="row">
+          <div class="input-field col s12">
+            <label for="notes">Notes</label>
+            <textarea name="notes" class="materialize-textarea">{{ member.notes or '' }}</textarea>
+            <input type="text" name="section" value="notes" hidden>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
+    <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formNotes">Save</button>
+  </div>
+</div>
+
+<div id="modalMain" class="modal bottom-sheet modal-bottom-tall">
+  <div class="modal-content">
+    <h4>Main</h4>
+    <p>
+      Enter this character's main if it's an alt.
+    </p>
+    <div class="row">
+      <form action="{{ url_for('details', id=member.id) }}" method="POST" class="col s12" id="formMain">
+        <input type="hidden" name="section" value="main">
+        <div class="row">
+          <div class="input-field col s4">
+            <select name="main" id="main">
+              <option value="*">** This character **</option>
+              {% for member in all_members %}
+                <option value="{{ member }}">{{ member }}</option>
+              {% endfor %}
+            </select>
+            <label for="main">Main</label>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
+    <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formMain">Save</button>
+  </div>
+</div>
+
+<div id="modalDelete" class="modal bottom-sheet">
+  <div class="modal-content">
+    <h4>Delete member</h4>
+    <p>
+      Are you sure that you want to permanently delete this user?
+    </p>
+  </div>
+  <div class="modal-footer">
+    <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
+    <a class="waves-effect waves-light btn-flat red" href="{{ url_for('delete', id=member.id) }}">Delete</a>
+  </div>
+</div>
+{% endblock content %}

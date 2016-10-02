@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+<script>
+  $(document).ready(function() {
+    $('select').material_select();
+  });
+</script>
+{% endblock head %}
+
+
+{% block content %}
+<h3>Hey, {{ character_name }}</h3>
+
+<h5 class="pad-top-heavy">
+{% if current_user.member.status == 'Guest' %}
+  If you want to join, create a new API key with the button,
+  set it to not expire, copy it in below, and hit the Apply button.<br>
+  If you already have a character in the corp, put its name in the other box.<br>
+  <span class="red-text">All character names are case-sensitive!</span>
+</h5>
+
+<br>
+<div class="card-panel">
+  <div class="row">
+    <div class="col s12">
+      <a class="btn waves-effect waves-light grey darken-1"
+        href="https://community.eveonline.com/support/api-key/CreatePredefined?accessMask={{ config['API_KEY_MASK'] }}"
+        target="_blank">Create key
+        <i class="material-icons right">send</i>
+      </a>
+    </div>
+  </div>
+  <form action="{{ url_for('join') }}" method="POST">
+    <div class="row">
+      <div class="col s6 input-field">
+        <label for="code">API key</label>
+        <input type="text" name="key" required>
+      </div>
+      <div class="col s6 input-field">
+        <label for="code">API code</label>
+        <input type="text" name="code" required>
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s6">
+        <select name="main" id="main">
+          <option value="*">** This character **</option>
+          {% for member in all_members %}
+            <option value="{{ member }}">{{ member }}</option>
+          {% endfor %}
+        </select>
+        <label for="main">Main</label>
+      </div>
+      <div class="col s6">
+        <button class="btn waves-effect waves-light grey darken-1" style="top: 24px;">Apply
+          <i class="material-icons right">send</i>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+{% else %}
+You've put in an application, and it's status is <strong>{{ current_user.member.status }}</strong>.
+<br><br>
+{% if not current_user.member.reddit %}
+  If you have a reddit account, why not <a href="{{ reddit_link }}">link it</a>?
+{% else %}
+  You've linked your reddit account <strong>/u/{{ current_user.member.reddit }}</strong>.
+{% endif %}
+<br><br>
+{% if current_user.member.main %}
+  You've stated that your main character is <strong>{{ current_user.member.main }}</strong>.
+{% endif %}
+</h5>
+{% endif %}
+{% endblock content %}

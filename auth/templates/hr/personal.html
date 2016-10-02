@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+<script>
+  $(document).ready(function() {
+    $('.modal-trigger').leanModal();
+  });
+</script>
+{% endblock head %}
+
+{% block content %}
+{% if not current_user.member.key_id or not current_user.member.v_code %}
+<div class="card-panel red lighten-1 flashed">
+  <p>
+    You need to have at least 1 API Key on file
+  </p>
+</div>
+{% endif %}
+
+<h2>Me <small>(well, you)</small></h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Setting</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Character name</td>
+      <td>{{ current_user.member.character_name }}</td>
+    </tr>
+    <tr>
+      <td>Current corporation</td>
+      <td>{{ current_user.member.corporation }}</td>
+    </tr>
+    <tr>
+      <td>Reddit username</td>
+      <td>
+        {% if current_user.member.reddit %}
+          <a href="https://reddit.com/u/{{ current_user.member.reddit }}" target="_blank">{{ current_user.member.reddit }}</a>
+        {% else %}
+          <a href="{{ reddit_link }}">Link your account!</a>
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td>Membership status</td>
+      <td>{{ current_user.member.status }}</td>
+    </tr>
+    <tr>
+      <td>API key(s)</td>
+      <td>
+        <a class="waves-effect waves-light btn modal-trigger grey darken-1" href="#modalAPI">Edit</a>
+      </td>
+    </tr>
+    <tr>
+      <td>Training Progress</td>
+      <td>
+        <table class="table col s6">
+          <tbody>
+            <tr>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_good_fits" disabled
+                  id="training_know_good_fits"{% if current_user.member.know_good_fits %} checked="checked"{% endif %}>
+                <label for="training_know_good_fits" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Ability to fit a ship decently (no dual tank, no
+                  armor Drakes, etc. - the basics)">
+                  Good fits
+                </label>
+              </td>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_scan" disabled
+                  id="training_know_scan"{% if current_user.member.know_scan %} checked="checked"{% endif %}>
+                <label for="training_know_scan" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Ability to scan and follow the scanning corp policies">
+                  Scanning
+                </label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_mass_and_time" disabled
+                  id="training_know_mass_and_time"{% if current_user.member.know_mass_and_time %} checked="checked"{% endif %}>
+                <label for="training_know_mass_and_time" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Knowledge of how mass and time on a wormhole work">
+                  Mass and time
+                </label>
+              </td>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_organize_gank" disabled
+                  id="training_know_organize_gank"{% if current_user.member.know_organize_gank %} checked="checked"{% endif %}>
+                <label for="training_know_organize_gank" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Knowledge of how to get people together for a gank">
+                  Organize a gank
+                </label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_when_to_pve" disabled
+                  id="training_know_when_to_pve"{% if current_user.member.know_when_to_pve %} checked="checked"{% endif %}>
+                <label for="training_know_when_to_pve" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Knowledge of the correct time to do PvE (doesn't PvE
+                  in a hostile hole, etc.)">
+                  When to PvE
+                </label>
+              </td>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_comms" disabled
+                  id="training_know_comms"{% if current_user.member.know_comms %} checked="checked"{% endif %}>
+                <label for="training_know_comms" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Ability to use comms and apply comms discipline when needed">
+                  Comms
+                </label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_appropriate_ships" disabled
+                  id="training_know_appropriate_ships"{% if current_user.member.know_appropriate_ships %} checked="checked"{% endif %}>
+                <label for="training_know_appropriate_ships" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Ability to field a ship that is appropriate for the situation">
+                  Appropriate ships
+                </label>
+              </td>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_intel" disabled
+                  id="training_know_intel"{% if current_user.member.know_intel %} checked="checked"{% endif %}>
+                <label for="training_know_intel" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Ability to collect and relay intel">
+                  Intel
+                </label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_pvp" disabled
+                  id="training_know_pvp"{% if current_user.member.know_pvp %} checked="checked"{% endif %}>
+                <label for="training_know_pvp" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Ability to competently fly in a PvP scenario and remain calm">
+                  PvP
+                </label>
+              </td>
+              <td>
+                <input type="checkbox" class="filled-in" name="know_doctrine" disabled
+                  id="training_know_doctrine"{% if current_user.member.know_doctrine %} checked="checked"{% endif %}>
+                <label for="training_know_doctrine" class="tooltipped" data-position="bottom"
+                  data-delay="50" data-tooltip="Ability fly a covops ship and the doctrine Vexor,
+                  and the Sacrilege (or be training towards it)">
+                  Doctrine
+                </label>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Please note that having all of these filled by Mentors doesn't mean that you're automatically advanced to <strong>Bro</strong>:
+          it's still handled on a case by case basis.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div id="modalAPI" class="modal bottom-sheet">
+  <div class="modal-content">
+    <h4>API key</h4>
+    <p>
+      Enter your EVE API key <code>keyID</code> and <code>vCode</code>.<br>
+      If you need to create a new key, use
+      <a href="https://community.eveonline.com/support/api-key/CreatePredefined?accessMask={{ config['API_KEY_MASK'] }}" target="_blank">
+      this link</a> and be sure to check <i>No Expiry</i>.
+    </p>
+    <div class="row">
+      <form action="{{ url_for('index') }}" method="POST" class="col s12" id="formKeys">
+        <div class="row">
+          <div class="input-field col s6">
+            <label for="key">KeyID</label>
+            <input type="text" name="key_id" value="{{ current_user.member.key_id or '' }}" required>
+          </div>
+          <div class="input-field col s6">
+            <label for="vcode">vCode</label>
+            <input type="text" name="v_code" value="{{ current_user.member.v_code or '' }}" required>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
+    <button class="waves-effect waves-light btn-flat grey darken-1" type="submit" form="formKeys">Save</button>
+  </div>
+</div>
+{% endblock content %}
