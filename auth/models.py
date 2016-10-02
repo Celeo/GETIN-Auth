@@ -10,10 +10,12 @@ class User(db.Model):
     recruiter = db.Column(db.Boolean)
     mentor = db.Column(db.Boolean)
 
-    def __init__(self, name, corporation, admin=False):
+    def __init__(self, name, corporation, admin=False, recruiter=False, mentor=False):
         self.name = name
         self.corporation = corporation
         self.admin = admin
+        self.recruiter = recruiter
+        self.mentor = mentor
 
     @property
     def is_authenticated(self):
