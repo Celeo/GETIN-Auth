@@ -2,5 +2,42 @@
 
 
 {% block content %}
-<h2>Landing Page</h2>
+
+<h2>GETIN Auth</h2>
+
+<div class="row">
+  <div class="card white z-depth-2">
+    <div class="card-content black-text">
+      <span class="card-title">Services</span>
+      <p>
+        You can find our online services through this web app.
+        {% if current_user.is_anonymous %}
+        <br>To start, log in with the link in the top right.
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="card white z-depth-2">
+    <div class="card-content black-text">
+      <span class="card-title">News</span>
+      <p>
+        No news to report.
+      </p>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="card white z-depth-2">
+    <div class="card-content black-text">
+      <span class="card-title">Human Resources</span>
+      <p>
+        To apply for the corporation, review your application status, or
+        see your training process, click <a href="{{ url_for('hr.index') }}">here</a> to visit HR.
+      </p>
+    </div>
+  </div>
+</div>
+
 {% endblock content %}

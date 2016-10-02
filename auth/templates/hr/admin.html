@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'hr/base.html' %}
 
 
 {% block head %}
@@ -7,7 +7,7 @@
     $('#import').on('click', function() {
       $(this).addClass('disabled');
       $(this).text('Importing ...');
-      window.location.href = "{{ url_for('sync') }}";
+      window.location.href = "{{ url_for('.sync') }}";
     });
     $('select').material_select();
   });
@@ -32,7 +32,7 @@
 
 <div class="card-panel">
   <h4>Set Status</h4>
-  <form action="{{ url_for('admin_set_status') }}" method="POST" class="col s12">
+  <form action="{{ url_for('.admin_set_status') }}" method="POST" class="col s12">
     <div class="row">
       <div class="input-field col s6">
         <label for="name">Character (full) name</label>
@@ -73,11 +73,11 @@
     <tbody>
       {% for member in recruiters %}
         <tr>
-          <td><a href="{{ url_for('details', id=member.id) }}">{{ member.character_name }}</a></td>
+          <td><a href="{{ url_for('.details', id=member.id) }}">{{ member.character_name }}</a></td>
           {% if member.user.admin %}
             <td>This user is an admin</td>
           {% else %}
-            <td><a href="{{ url_for('revoke_access', name=member.character_name, role='Recruiter') }}"
+            <td><a href="{{ url_for('.revoke_access', name=member.character_name, role='Recruiter') }}"
               class="btn waves-efect waves-light red">Revoke</a></td>
           {% endif %}
         </tr>
@@ -88,7 +88,7 @@
 
 <div class="card-panel">
   <h4>Add a recruiter</h4>
-  <form action="{{ url_for('admin') }}" method="POST" class="col s12">
+  <form action="{{ url_for('.admin') }}" method="POST" class="col s12">
     <div class="row">
       <div class="input-field col s6">
         <select name="name" id="name">
@@ -120,11 +120,11 @@
     <tbody>
       {% for member in mentors %}
         <tr>
-          <td><a href="{{ url_for('details', id=member.id) }}">{{ member.character_name }}</a></td>
+          <td><a href="{{ url_for('.details', id=member.id) }}">{{ member.character_name }}</a></td>
           {% if member.user.admin %}
             <td>This user is an admin</td>
           {% else %}
-            <td><a href="{{ url_for('revoke_access', name=member.character_name, role='Mentor') }}"
+            <td><a href="{{ url_for('.revoke_access', name=member.character_name, role='Mentor') }}"
               class="btn waves-efect waves-light red">Revoke</a></td>
           {% endif %}
         </tr>
@@ -135,7 +135,7 @@
 
 <div class="card-panel">
   <h4>Add a mentor</h4>
-  <form action="{{ url_for('admin') }}" method="POST" class="col s12">
+  <form action="{{ url_for('.admin') }}" method="POST" class="col s12">
     <div class="row">
       <div class="input-field col s6">
         <select name="name" id="name">

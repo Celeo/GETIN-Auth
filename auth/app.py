@@ -5,8 +5,9 @@ from flask_login import LoginManager, login_user, logout_user, current_user
 from preston.crest import Preston as CREST
 from preston.xmlapi import Preston as XMLAPI
 
-from .shared import db
-from .models import User
+from auth.shared import db, eveapi
+from auth.models import User
+from auth.hr.app import app as hr_blueprint
 
 
 # Create and configure app
@@ -14,9 +15,10 @@ app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 # EVE XML API connection
 user_agent = 'GETIN HR app ({})'.format(app.config['CONTACT_EMAIL'])
-xmlapi = XMLAPI(user_agent=user_agent)
+eveapi['user_agent'] = user_agent
+eveapi['xml'] = XMLAPI(user_agent=user_agent)
 # EVE CREST API connection
-crest = CREST(
+eveapi['crest'] = CREST(
     user_agent=user_agent,
     client_id=app.config['EVE_OAUTH_CLIENT_ID'],
     client_secret=app.config['EVE_OAUTH_SECRET'],
@@ -35,9 +37,11 @@ handler = logging.FileHandler('log.txt')
 handler.setFormatter(logging.Formatter(style='{', fmt='{asctime} [{levelname}] {message}', datefmt='%Y-%m-%d %H:%M:%S'))
 handler.setLevel(app.config['LOGGING_LEVEL'])
 app.logger.addHandler(handler)
+# Blueprints
+app.register_blueprint(hr_blueprint, url_prefix='/hr')
+
+
 app.logger.info('Initialization complete')
-# Storage for API calls
-new_apps = []
 
 
 @login_manager.user_loader
@@ -70,7 +74,7 @@ def login():
     Returns;
         rendered template 'login.html'
     """
-    return render_template('login.html', url=crest.get_authorize_url())
+    return render_template('login.html', url=eveapi['crest'].get_authorize_url())
 
 
 @app.route('/eve/callback')
@@ -93,7 +97,7 @@ def eve_oauth_callback():
         flash('There was an error in EVE\'s response', 'error')
         return url_for('login')
     try:
-        auth = crest.authenticate(request.args['code'])
+        auth = eveapi['crest'].authenticate(request.args['code'])
     except Exception as e:
         app.logger.error('CREST signing error: ' + str(e))
         flash('There was an authentication error signing you in.', 'error')
@@ -173,7 +177,7 @@ def get_corp_for_name(name):
     Returns:
         value (int) of their EVE character ID
     """
-    return get_corp_for_id(xmlapi.eve.CharacterId(names=name)['rowset']['row']['@characterID'])
+    return get_corp_for_id(eveapi['xml'].eve.CharacterId(names=name)['rowset']['row']['@characterID'])
 
 
 def get_corp_for_id(id):
@@ -184,4 +188,4 @@ def get_corp_for_id(id):
     Returns:
         value (str) of their corporation's name
     """
-    return xmlapi.eve.CharacterAffiliation(ids=id)['rowset']['row']['@corporationName']
+    return eveapi['xml'].eve.CharacterAffiliation(ids=id)['rowset']['row']['@corporationName']

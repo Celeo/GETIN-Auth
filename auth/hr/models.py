@@ -1,41 +1,7 @@
 from datetime import datetime
 
-from hr.shared import db
-
-
-class User(db.Model):
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    admin = db.Column(db.Boolean)
-    recruiter = db.Column(db.Boolean)
-    mentor = db.Column(db.Boolean)
-
-    def __init__(self, name, admin=False):
-        self.name = name
-        self.admin = admin
-
-    @property
-    def is_authenticated(self):
-        return self.member and (self.admin or self.recruiter or self.mentor or self.member.status in ['Member', 'Accepted'])
-
-    @property
-    def is_active(self):
-        return True
-
-    @property
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
-        return str(self.id)
-
-    @property
-    def member(self):
-        return Member.query.filter_by(character_name=self.name).first()
-
-    def __str__(self):
-        return '<User-{}>'.format(self.name)
+from auth.shared import db
+from auth.models import User
 
 
 class Member(db.Model):

@@ -7,6 +7,8 @@ class User(db.Model):
     name = db.Column(db.String)
     corporation = db.Column(db.String)
     admin = db.Column(db.Boolean)
+    recruiter = db.Column(db.Boolean)
+    mentor = db.Column(db.Boolean)
 
     def __init__(self, name, corporation, admin=False):
         self.name = name

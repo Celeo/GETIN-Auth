@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'hr/base.html' %}
 
 
 {% block head %}
@@ -47,7 +47,7 @@
       <td>Membership status</td>
       <td>
 {% if current_user.recruiter or current_user.admin %}
-        <form action="{{ url_for('details', id=member.id) }}" method="POST" class="row">
+        <form action="{{ url_for('.details', id=member.id) }}" method="POST" class="row">
           <div class="col s4">
             <select name="status">
               <option value="{{ member.status }}" active>{{ member.status }}</option>
@@ -111,10 +111,10 @@
       <td>
         {% if not member.hidden %}
           <a class="waves-effect waves-light btn modal-trigger grey darken-1"
-            href="{{ url_for('visibility', id=member.id, action='hide') }}">Hide</a>
+            href="{{ url_for('.visibility', id=member.id, action='hide') }}">Hide</a>
         {% else %}
           <a class="waves-effect waves-light btn modal-trigger grey darken-1"
-            href="{{ url_for('visibility', id=member.id, action='show') }}">Show</a>
+            href="{{ url_for('.visibility', id=member.id, action='show') }}">Show</a>
         {% endif%}
       </td>
     </tr>
@@ -123,7 +123,7 @@
     <tr>
       <td>Training</td>
       <td>
-        <form action="{{ url_for('details', id=member.id) }}" method="POST">
+        <form action="{{ url_for('.details', id=member.id) }}" method="POST">
           <table class="table col s6">
             <tbody>
               <tr>
@@ -246,7 +246,7 @@
       Enter the EVE API key <code>keyID</code> and <code>vCode</code>.<br>
     </p>
     <div class="row">
-      <form action="{{ url_for('index') }}" method="POST" class="col s12" id="formKey">
+      <form action="{{ url_for('.index') }}" method="POST" class="col s12" id="formKey">
         <div class="row">
           <div class="input-field col s6">
             <label for="key">KeyID</label>
@@ -271,7 +271,7 @@
   <div class="modal-content">
     <h4>Notes</h4>
     <div class="row">
-      <form action="{{ url_for('details', id=member.id) }}" method="POST" class="col s12" id="formNotes">
+      <form action="{{ url_for('.details', id=member.id) }}" method="POST" class="col s12" id="formNotes">
         <div class="row">
           <div class="input-field col s12">
             <label for="notes">Notes</label>
@@ -295,7 +295,7 @@
       Enter this character's main if it's an alt.
     </p>
     <div class="row">
-      <form action="{{ url_for('details', id=member.id) }}" method="POST" class="col s12" id="formMain">
+      <form action="{{ url_for('.details', id=member.id) }}" method="POST" class="col s12" id="formMain">
         <input type="hidden" name="section" value="main">
         <div class="row">
           <div class="input-field col s4">
@@ -326,7 +326,7 @@
   </div>
   <div class="modal-footer">
     <a class="modal-action modal-close waves-effect waves-light btn-flat white">Close</a>
-    <a class="waves-effect waves-light btn-flat red" href="{{ url_for('delete', id=member.id) }}">Delete</a>
+    <a class="waves-effect waves-light btn-flat red" href="{{ url_for('.delete', id=member.id) }}">Delete</a>
   </div>
 </div>
 {% endblock content %}

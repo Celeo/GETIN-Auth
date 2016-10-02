@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'hr/base.html' %}
 
 
 {% block head %}
@@ -14,7 +14,7 @@
 <h3>Hey, {{ character_name }}</h3>
 
 <h5 class="pad-top-heavy">
-{% if current_user.member.status == 'Guest' %}
+{% if member.status == 'Guest' %}
   If you want to join, create a new API key with the button,
   set it to not expire, copy it in below, and hit the Apply button.<br>
   If you already have a character in the corp, put its name in the other box.<br>
@@ -32,7 +32,7 @@
       </a>
     </div>
   </div>
-  <form action="{{ url_for('join') }}" method="POST">
+  <form action="{{ url_for('.join') }}" method="POST">
     <div class="row">
       <div class="col s6 input-field">
         <label for="code">API key</label>
@@ -62,16 +62,16 @@
   </form>
 </div>
 {% else %}
-You've put in an application, and it's status is <strong>{{ current_user.member.status }}</strong>.
+You've put in an application, and it's status is <strong>{{ member.status }}</strong>.
 <br><br>
-{% if not current_user.member.reddit %}
+{% if not member.reddit %}
   If you have a reddit account, why not <a href="{{ reddit_link }}">link it</a>?
 {% else %}
-  You've linked your reddit account <strong>/u/{{ current_user.member.reddit }}</strong>.
+  You've linked your reddit account <strong>/u/{{ member.reddit }}</strong>.
 {% endif %}
 <br><br>
-{% if current_user.member.main %}
-  You've stated that your main character is <strong>{{ current_user.member.main }}</strong>.
+{% if member.main %}
+  You've stated that your main character is <strong>{{ member.main }}</strong>.
 {% endif %}
 </h5>
 {% endif %}

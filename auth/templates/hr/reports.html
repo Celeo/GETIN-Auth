@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'hr/base.html' %}
 
 
 {% block head %}
@@ -27,7 +27,7 @@
   <tbody>
     {% for member in invalid_mains %}
       <tr>
-        <td><a href="{{ url_for('details', id=member.id) }}">{{ member.character_name }}</a></td>
+        <td><a href="{{ url_for('.details', id=member.id) }}">{{ member.character_name }}</a></td>
         <td>{{ member.main }}</td>
         <td>{{ member.status }}</td>
         <td>{{ member.corporation }}</td>
@@ -53,7 +53,7 @@
   <tbody>
     {% for member in defunct_mains %}
       <tr>
-        <td><a href="{{ url_for('details', id=member.id) }}">{{ member.character_name }}</a></td>
+        <td><a href="{{ url_for('.details', id=member.id) }}">{{ member.character_name }}</a></td>
         <td>{{ member.main }}</td>
         <td>{{ member.status }}</td>
         <td>{{ member.corporation }}</td>
@@ -80,7 +80,7 @@
   <tbody>
     {% for member in missing_api_keys %}
       <tr>
-        <td><a href="{{ url_for('details', id=member.id) }}">{{ member.character_name }}</a></td>
+        <td><a href="{{ url_for('.details', id=member.id) }}">{{ member.character_name }}</a></td>
         <td>{{ member.main }}</td>
         <td>{{ member.status }}</td>
         <td>{{ member.corporation }}</td>
