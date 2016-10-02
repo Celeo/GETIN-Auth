@@ -6,7 +6,7 @@ from preston.crest import Preston as CREST
 from preston.xmlapi import Preston as XMLAPI
 
 from .shared import db
-from .models import User, Member
+from .models import User
 
 
 # Create and configure app
@@ -54,6 +54,11 @@ def load_user(user_id):
     return User.query.filter_by(id=int(user_id)).first()
 
 
+@app.route('/')
+def landing():
+    return render_template('landing.html')
+
+
 @app.route('/login')
 def login():
     """
@@ -97,33 +102,17 @@ def eve_oauth_callback():
     character_name = character_info['CharacterName']
     user = User.query.filter_by(name=character_name).first()
     if user:
-        if not user.member:
-            app.logger.info('Created a Member object for user {}'.format(user.name))
-            corporation = get_corp_for_name(user.name)
-            db.session.add(Member(user.name, corporation, 'Accepted' if corporation == app.config['CORPORATION'] else 'Guest'))
-            db.session.commit()
         login_user(user)
         app.logger.debug('{} logged in with EVE SSO'.format(current_user.name))
-        if user.member:
-            flash('Logged in', 'success')
-            return redirect(url_for('index'))
-        return redirect(url_for('join'))
-    user = User(character_name)
-    db.session.add(user)
+        flash('Logged in', 'success')
+        return redirect(url_for('landing'))
     corporation = get_corp_for_name(character_name)
-    member = Member.query.filter_by(character_name=character_name).first()
-    if not member:
-        db.session.add(Member(character_name, corporation, 'Accepted' if corporation == app.config['CORPORATION'] else 'Guest'))
-        app.logger.info('Added a new member object for {} from their first login'.format(character_name))
-    else:
-        app.logger.debug('{} logged in for the first time, but a member object already existed for them'.format(character_name))
+    user = User(character_name, corporation)
+    db.session.add(user)
     db.session.commit()
     login_user(user)
-    app.logger.info('{} created an account via EVE SSO'.format(current_user.name))
-    if corporation == app.config['CORPORATION']:
-        flash('Welcome to HR', 'success')
-        return redirect(url_for('index'))
-    return redirect(url_for('join'))
+    app.logger.info('{} created an account'.format(current_user.name))
+    return redirect(url_for('landing'))
 
 
 @app.route('/logout')
