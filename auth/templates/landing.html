@@ -15,15 +15,11 @@
         <br>To start, log in with the link in the top right.
         {% endif %}
       </p>
-    </div>
-  </div>
-</div>
-<div class="row">
-  <div class="card white z-depth-2">
-    <div class="card-content black-text">
-      <span class="card-title">News</span>
+      <br><br>
+      <span class="card-title"><a href="{{ url_for('hr.index') }}">Human Resources</a></span>
       <p>
-        No news to report.
+        To apply for the corporation, review your application status, or
+        see your training process, click <a href="{{ url_for('hr.index') }}">here</a> to visit HR.
       </p>
     </div>
   </div>
@@ -31,10 +27,10 @@
 <div class="row">
   <div class="card white z-depth-2">
     <div class="card-content black-text">
-      <span class="card-title">Human Resources</span>
+      <span class="card-title">News</span><br>
+      <strong>2016-10-02</strong>
       <p>
-        To apply for the corporation, review your application status, or
-        see your training process, click <a href="{{ url_for('hr.index') }}">here</a> to visit HR.
+        The site has been updated! You'll find all of the HR stuff under <a href="{{ url_for('hr.index') }}">/hr/</a> now.
       </p>
     </div>
   </div>

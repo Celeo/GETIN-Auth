@@ -30,7 +30,7 @@ db.init_app(app)
 # User management
 login_manager = LoginManager(app)
 login_manager.login_message = ''
-login_manager.login_view = 'check_access'
+login_manager.login_view = 'login'
 # Application logging
 app.logger.setLevel(app.config['LOGGING_LEVEL'])
 handler = logging.FileHandler('log.txt')

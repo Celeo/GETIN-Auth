@@ -41,7 +41,7 @@ def _prerender():
 
 @app.before_request
 def _preprocess():
-    member = Member.query.filter_by(character_name=current_user.name).first()
+    member = get_member_for(current_user)
     if not member and not current_user.is_anonymous:
         db.session.add(Member(current_user.name, get_corp_for_name(current_user.name)))
         db.session.commit()
@@ -615,7 +615,7 @@ def check_access():
         if current_user.is_authenticated:
             return redirect(url_for('.index'))
         return redirect(url_for('.join'))
-    return redirect(url_for('.login'))
+    return redirect(url_for('login'))
 
 
 @app.route('/reddit/callback')
@@ -777,4 +777,6 @@ def get_corp_for_id(id):
 
 
 def get_member_for(user):
+    if current_user.is_anonymous:
+        return None
     return Member.query.filter_by(character_name=user.name).first()
