@@ -1,14 +1,14 @@
-# GETIN-HR
+# GETIN-Auth
 
-GETIN-HR is a web application for keeping track of applicants and members for an EVE alliance. It was made for the GETIN alliance.
+GETIN-Auth is a collection of web applications for the GETIN alliance.
 
 ## Installing
 
-Download from my Git server, install the Python prerequisites, and copy and edit the configuration:
+Download, install the Python prerequisites, and copy and edit the configuration:
 
 ```bash
-$ git clone https://git.celeodor.com/Celeo/GETIN-HR.git
-$ cd GETIN-HR
+$ git clone https://git.celeodor.com/Celeo/GETIN-Auth.git
+$ cd GETIN-Auth
 $ virtualenv env
 $ . env/bin/activate
 $ pip install -r requirements.txt

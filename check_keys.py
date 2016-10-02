@@ -1,4 +1,4 @@
-from hr.app import *
+from auth.hr.app import *
 
 
 with open('results.txt', 'w') as f:
