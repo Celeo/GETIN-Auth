@@ -1,0 +1,19 @@
+{% extends 'wiki/base.html' %}
+
+
+{% block content %}
+
+<h2>Recent changes</h2>
+
+<ul class="circle bigger">
+  {% for revision in revisions %}
+    <li>
+      <a href="{{ url_for('.page', namespace=revision.page.namespace.name, name=revision.page.name) }}">
+      /{{ revision.page.namespace.name }}/{{ revision.page.name }}</a>
+      by <a href="#">{{ revision.user.name }}</a> on {{ revision.date.strftime('%Y-%m-%d at %H:%M:%S') }} -
+      <a href="{{ url_for('.revision', id=revision.id) }}">see change</a>
+    </li>
+  {% endfor %}
+</ul>
+
+{% endblock content %}

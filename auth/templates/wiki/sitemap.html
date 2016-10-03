@@ -1,0 +1,19 @@
+{% extends 'wiki/base.html' %}
+
+
+{% block content %}
+
+<h2>Sitemap</h2>
+
+<ul class="circle bigger">
+  {% for namespace in namespaces %}
+    <li><a href="{{ url_for('.view_namespace', name=namespace.name) }}">/{{ namespace.name }}/</a></li>
+    <ul class="circle bigger shift-right">
+      {% for page in namespace.pages %}
+        <li><a href="{{ url_for('.page', namespace=namespace.name, name=page.name) }}">{{ page.name }}</a></li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+</ul>
+
+{% endblock content %}

@@ -1,0 +1,59 @@
+{% extends 'wiki/base.html' %}
+
+
+{% block content %}
+
+<div class="clearfix">
+  <h2 class="page_title left">
+    Revision {{ revision.id }}
+  </h2>
+  <div class="right">
+    {% if back %}
+      <a href="{{ url_for('.revision', id=back) }}" class="btn waves-effect waves-light blue darken-2">Previous</a>
+    {% endif %}
+    {% if next %}
+      <a href="{{ url_for('.revision', id=next) }}" class="btn waves-effect waves-light blue darken-2">Next</a>
+    {% endif %}
+    <span style="margin-left: 2em;"></span>
+    <a href="{{ url_for('.page', namespace=revision.page.namespace.name, name=revision.page.name) }}"
+      class="btn waves-effect waves-light blue darken-2">See current</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col s5">
+    <table class="bordered">
+      <tbody>
+        <tr>
+          <th>Namespace</th>
+          <td>{{ revision.page.namespace.name }}</td>
+        </tr>
+        <tr>
+          <th>Page</th>
+          <td>{{ revision.page.name }}</td>
+        </tr>
+        <tr>
+          <th>Author</th>
+          <td>{{ revision.user.name }}</td>
+        </tr>
+        <tr>
+          <th>Date</th>
+          <td>{{ revision.date }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col s6 rev_before">
+    <h2 class="page_title">Before</h2>
+    <div>{{ previous.contents | safe }}</div>
+  </div>
+  <div class="col s6">
+    <h2 class="page_title">After</h2>
+    <div>{{ revision.contents | safe }}</div>
+  </div>
+</div>
+
+{% endblock content %}

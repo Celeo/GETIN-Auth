@@ -1,0 +1,53 @@
+{% extends 'wiki/base.html' %}
+
+
+{% block content %}
+
+<div class="clearfix">
+  <h2 class="page_title left">/{{ name }}/</h2>
+  <div class="right">
+    {% if current_user.is_authenticated and current_user.wiki_mod %}
+      <a href="#modalAdd" class="btn waves-effect waves-light blue darken-2 modal-trigger">Add new page</a>
+    {% endif %}
+  </div>
+</div>
+
+<ul class="circle bigger">
+  {% for page in ns.pages %}
+    <li><a href="{{ url_for('.page', namespace=page.namespace.name, name=page.name) }}">{{ page.name }}</a></li>
+  {% endfor %}
+</ul>
+
+<div id="modalAdd" class="modal">
+  <div class="modal-content">
+    <h4>Add new page</h4>
+    <div class="row">
+      <div class="col s4 input-field">
+        <input type="text" id="newPageName">
+        <label for="newPageName">New page name</label>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a href="#" id="modalNewGo" class="btn waves-effect waves-light blue darken-2 disabled">Go</a>
+  </div>
+</div>
+
+<script>
+  $('.modal-trigger').leanModal()
+  function validate() {
+    if ($(this).val() != '')
+      $('#modalNewGo').removeClass('disabled')
+    else if (!$('#modalNewGo').hasClass('disabled'))
+      $('#modalNewGo').addClass('disabled')
+  }
+  $('#newPageName').on('keyup', validate);
+  $('#newPageName').on('change', validate);
+  $('#modalNewGo').on('click', function() {
+    if ($(this).hasClass('disabled'))
+      return false
+    window.location.href = '/{{ name }}/' + $('#newPageName').val() + '/edit'
+  })
+</script>
+
+{% endblock content %}

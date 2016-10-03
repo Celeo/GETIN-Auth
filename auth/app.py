@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from flask import Flask, render_template, redirect, request, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, current_user
@@ -8,10 +9,12 @@ from preston.xmlapi import Preston as XMLAPI
 from auth.shared import db, eveapi
 from auth.models import User
 from auth.hr.app import app as hr_blueprint
+from auth.wiki.app import app as wiki_blueprint
 
 
 # Create and configure app
 app = Flask(__name__)
+app.permanent_session_lifetime = timedelta(days=14)
 app.config.from_pyfile('config.cfg')
 # EVE XML API connection
 user_agent = 'GETIN HR app ({})'.format(app.config['CONTACT_EMAIL'])
@@ -39,6 +42,7 @@ handler.setLevel(app.config['LOGGING_LEVEL'])
 app.logger.addHandler(handler)
 # Blueprints
 app.register_blueprint(hr_blueprint, url_prefix='/hr')
+app.register_blueprint(wiki_blueprint, url_prefix='/wiki')
 
 
 app.logger.info('Initialization complete')

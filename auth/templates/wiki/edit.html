@@ -1,0 +1,71 @@
+{% extends 'wiki/base.html' %}
+
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/materialNote.css') }}">
+<script src="{{ url_for('.static', filename='js/ckMaterializeOverrides.js') }}"></script>
+<script src="{{ url_for('.static', filename='js/materialNote.min.js') }}"></script>
+<script>
+  $(document).ready(function () {
+    var actual = $('#actual').html()
+    $('.editor').materialnote()
+    $('.editor').code(actual)
+  })
+  function save() {
+    $('#error').hide()
+    var content = $('.editor').code()
+    $.ajax({
+      url: '{{ url_for('.edit', namespace=namespace, name=name) }}',
+      type: 'POST',
+      data: {
+        content: content
+      },
+      success: function() {
+        window.location.href = '{{ url_for('.page', namespace=namespace, name=name) }}'
+      },
+      error: function(e) {
+        console.log('Exception with Ajax POST: ' + e)
+        $('#error').show()
+      }
+    })
+  }
+</script>
+{% endblock head %}
+
+{% block content %}
+
+<div class="clearfix">
+  <h2 class="page_title left">
+    <small>Editing:</small>
+    <small class="er">
+      <a href="{{ url_for('.view_namespace', name=namespace) }}">/{{ namespace }}/</a>
+    </small>
+    {{ name }}
+  </h2>
+  <div class="right">
+    <a href="{{ url_for('.page', namespace=namespace, name=name) }}"
+      class="btn waves-effect waves-light blue darken-2">Back to current page</a>
+  </div>
+</div>
+
+<div class="red-text bigger" id="error" hidden>
+  <p>
+    An error occurred saving your changes.
+  </p>
+</div>
+<div class="green-text bigger" id="saved" hidden>
+  <p>
+    Your changes have been saved.
+  </p>
+</div>
+
+<div id="actual" hidden>
+  {{ page.contents | safe }}
+</div>
+
+<div class="editor"></div>
+<div class="clearfix">
+  <button onclick="save()" class="right btn waves-effect waves-effect green darken-2">Save</button>
+</div>
+
+{% endblock content %}

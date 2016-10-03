@@ -1,0 +1,28 @@
+{% extends 'wiki/base.html' %}
+
+
+{% block content %}
+
+<div class="clearfix">
+  <h2 class="page_title left">
+    <small class="er">
+      <a href="{{ url_for('.view_namespace', name=namespace) }}">/{{ namespace }}/</a>
+    </small>
+    {{ name }}
+  </h2>
+  <div class="right">
+    <a href="{{ url_for('.page', namespace=page.namespace.name, name=page.name) }}"
+      class="btn waves-effect waves-light blue darken-2">Back to current page</a>
+  </div>
+</div>
+
+<ul class="circle bigger">
+  {% for revision in page.revisions | reverse %}
+    <li>
+      By <a href="#">{{ revision.user.name }}</a> on {{ revision.date.strftime('%Y-%m-%d at %H:%M:%S') }} -
+      <a href="{{ url_for('.revision', id=revision.id) }}">see change</a>
+    </li>
+  {% endfor %}
+</ul>
+
+{% endblock content %}

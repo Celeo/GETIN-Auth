@@ -9,17 +9,20 @@ class User(db.Model):
     admin = db.Column(db.Boolean)
     recruiter = db.Column(db.Boolean)
     mentor = db.Column(db.Boolean)
+    wiki_mod = db.Column(db.Boolean)
 
-    def __init__(self, name, corporation, admin=False, recruiter=False, mentor=False):
+    def __init__(self, name, corporation, admin=False, recruiter=False, mentor=False, wiki_mod=False):
         self.name = name
         self.corporation = corporation
         self.admin = admin
         self.recruiter = recruiter
         self.mentor = mentor
+        self.wiki_mod = wiki_mod
 
     @property
     def is_authenticated(self):
-        return True
+        # TODO fix
+        return self.corporation == 'Wormbro'
 
     @property
     def is_active(self):
