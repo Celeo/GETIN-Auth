@@ -46,7 +46,7 @@
           {% if current_user.admin %}
             <li><a href="{{ url_for('.admin') }}">Admin</a></li>
           {% endif %}
-          <li><a href="{{ url_for('logout') }}">Log out</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout <strong>{{ current_user.name }}</strong></a></li>
         {% elif not request.endpoint == 'login' %}
           <li><a href="{{ url_for('.login') }}">Log in</a></li>
         {% endif %}
@@ -63,7 +63,7 @@
           {% if current_user.admin %}
             <li><a href="{{ url_for('.admin') }}">Admin</a></li>
           {% endif %}
-          <li><a href="{{ url_for('logout') }}">Log out</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout <strong>{{ current_user.name }}</strong></a></li>
         {% elif not request.endpoint == 'login' %}
           <li><a href="{{ url_for('.login') }}">Log in</a></li>
         {% endif %}

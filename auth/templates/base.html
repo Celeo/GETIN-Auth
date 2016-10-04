@@ -34,14 +34,14 @@
         <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
         <ul class="right hide-on-med-and-down">
         {% if not current_user.is_anonymous %}
-          <li><a href="{{ url_for('logout') }}">Log out</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout <strong>{{ current_user.name }}</strong></a></li>
         {% elif not request.endpoint == 'login' %}
           <li><a href="{{ url_for('login') }}">Log in</a></li>
         {% endif %}
         </ul>
         <ul class="side-nav" id="mobile-demo">
         {% if not current_user.is_anonymous %}
-          <li><a href="{{ url_for('logout') }}">Log out</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout <strong>{{ current_user.name }}</strong></a></li>
         {% elif not request.endpoint == 'login' %}
           <li><a href="{{ url_for('login') }}">Log in</a></li>
         {% endif %}

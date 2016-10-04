@@ -1,7 +1,7 @@
 from functools import wraps
 
 from flask import Blueprint, current_app, render_template, redirect, request, url_for, flash, session, abort, jsonify
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 from sqlalchemy import or_
 from preston.xmlapi import Preston as XMLAPI
 
@@ -19,7 +19,7 @@ reddit_oauth = None
 new_apps = []
 
 
-@app.record
+@app.record_once
 def _record(setup_state):
     app.config = setup_state.app.config
     global reddit_oauth
@@ -598,24 +598,6 @@ def reports():
             missing_api_keys.append(member)
     return render_template('hr/reports.html',
         defunct_alts=defunct_alts, invalid_mains=invalid_mains, missing_api_keys=missing_api_keys)
-
-
-@app.route('/check_access')
-def check_access():
-    """
-    This transient endpoint checks where a user should be redirect to.
-
-    Args:
-        None
-
-    Returns:
-        redirect to the index , join, or login endpoints
-    """
-    if current_user and not current_user.is_anonymous:
-        if current_user.is_authenticated:
-            return redirect(url_for('.index'))
-        return redirect(url_for('.join'))
-    return redirect(url_for('login'))
 
 
 @app.route('/reddit/callback')

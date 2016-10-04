@@ -50,14 +50,13 @@ app.logger.info('Initialization complete')
 
 @login_manager.user_loader
 def load_user(user_id):
-    """
-    Takes a string int and returns a hr.models.User object for Flask-Login.
+    """Takes a string int and returns a auth.models.User object for Flask-Login.
 
     Args:
-        user_id (str) - user model id
+        user_id (str): user model id
 
     Returns:
-        user (hr.models.User) with that id
+        auth.models.User: user with that id
     """
     return User.query.filter_by(id=int(user_id)).first()
 
@@ -69,22 +68,20 @@ def landing():
 
 @app.route('/login')
 def login():
-    """
-    This page shows a user the EVE SSO link so they can log in.
+    """Shows a user the EVE SSO link so they can log in.
 
     Args:
         None
 
     Returns;
-        rendered template 'login.html'
+        str: rendered template 'login.html'
     """
     return render_template('login.html', url=eveapi['crest'].get_authorize_url())
 
 
 @app.route('/eve/callback')
 def eve_oauth_callback():
-    """
-    This transient endpoint completes the EVE SSO login. Here, hr.models.User models
+    """Completes the EVE SSO login. Here, hr.models.User models
     and hr.models.Member models are created for the user if they don't
     exist and the user is redirected the the page appropriate for their
     access level.
@@ -93,7 +90,7 @@ def eve_oauth_callback():
         None
 
     Returns:
-        redirect to the login endpoint if something failed, join endpoint if
+        str: redirect to the login endpoint if something failed, join endpoint if
         the user is a new user, or the index endpoint if they're already a member.
     """
     if 'error' in request.path:
@@ -125,14 +122,13 @@ def eve_oauth_callback():
 
 @app.route('/logout')
 def logout():
-    """
-    This transient endpoint logs the user out of the site.
+    """Logs the user out of the site.
 
     Args:
         None
 
     Returns:
-        redirect to the login endpoint
+        str: redirect to the login endpoint
     """
     app.logger.debug('{} logged out'.format(current_user.name if not current_user.is_anonymous else 'unknown user'))
     logout_user()
@@ -141,14 +137,13 @@ def logout():
 
 @app.errorhandler(404)
 def error_404(e):
-    """
-    This page catches 404 errors in the app and shows the user an error page.
+    """Catches 404 errors in the app and shows the user an error page.
 
     Args:
-        e (Exception) - the exception from the server
+        e (Exception): the exception from the server
 
     Returns:
-        rendered template 'error_404.html'
+        str: rendered template 'error_404.html'
     """
     app.logger.error('404 error at "{}" by {}: {}'.format(
         request.url, current_user.name if not current_user.is_anonymous else 'unknown user', str(e))
@@ -158,14 +153,13 @@ def error_404(e):
 
 @app.errorhandler(500)
 def error_500(e):
-    """
-    This page catches 500 errors in the app and shows the user an error page.
+    """Catches 500 errors in the app and shows the user an error page.
 
     Args:
-        e (Exception) - the exception from the server
+        e (Exception): the exception from the server
 
     Returns:
-        rendered template 'error_404.html'
+        str: rendered template 'error_404.html'
     """
     app.logger.error('500 error at "{}" by {}: {}'.format(
         request.url, current_user.name if not current_user.is_anonymous else 'unknown user', str(e))
@@ -174,22 +168,24 @@ def error_500(e):
 
 
 def get_corp_for_name(name):
-    """
-    This helper method takes a character's name and returns their EVE character ID.
+    """Takes a character's name and returns their EVE character ID.
+
     Args:
-        name (str) - full character name
+        name (str): full character name
+
     Returns:
-        value (int) of their EVE character ID
+        int: value of their EVE character ID
     """
     return get_corp_for_id(eveapi['xml'].eve.CharacterId(names=name)['rowset']['row']['@characterID'])
 
 
 def get_corp_for_id(id):
-    """
-    This helper method takes a character's id and returns their corporation name.
+    """Takes a character's id and returns their corporation name.
+
     Args:
-        name (str) - full character name
+        name (str): full character name
+
     Returns:
-        value (str) of their corporation's name
+        str: value of their corporation's name
     """
     return eveapi['xml'].eve.CharacterAffiliation(ids=id)['rowset']['row']['@corporationName']
