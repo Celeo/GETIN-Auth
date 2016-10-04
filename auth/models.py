@@ -21,8 +21,7 @@ class User(db.Model):
 
     @property
     def is_authenticated(self):
-        # TODO fix
-        return self.corporation == 'Wormbro'
+        return True
 
     @property
     def is_active(self):
