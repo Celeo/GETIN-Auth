@@ -66,6 +66,8 @@ def index():
     Returns:
         rendered template 'personal.html'
     """
+    if get_member_for(current_user).status == 'New':
+        return redirect(url_for('.join'))
     if request.method == 'POST':
         current_app.logger.debug('POST on index by {}'.format(current_user.name))
         key_id = request.form['key_id']
@@ -447,7 +449,7 @@ def join():
     Returns:
         rendered tempalte 'join.html'
     """
-    if current_user.is_authenticated:
+    if get_member_for(current_user).status == 'Accepted':
         return redirect(url_for('.index'))
     character_name = session.get('character_name') or current_user.name if not current_user.is_anonymous else None
     if not character_name:
