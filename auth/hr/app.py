@@ -66,7 +66,7 @@ def index():
     Returns:
         rendered template 'personal.html'
     """
-    if get_member_for(current_user).status == 'New':
+    if get_member_for(current_user).status in ['Guest', 'New']:
         return redirect(url_for('.join'))
     if request.method == 'POST':
         current_app.logger.debug('POST on index by {}'.format(current_user.name))

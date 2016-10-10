@@ -28,7 +28,7 @@ class Member(db.Model):
     know_pvp = db.Column(db.Boolean)
     know_doctrine = db.Column(db.Boolean)
 
-    def __init__(self, character_name, corporation, status='New',
+    def __init__(self, character_name, corporation, status='Guest',
             reddit=None, main=None, notes=None, key_id=None, v_code=None):
         self.character_name = character_name
         self.corporation = corporation
