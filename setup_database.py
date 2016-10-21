@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import os
-
 from auth.app import db
 from auth.models import *
 from auth.hr.models import *
@@ -9,10 +7,7 @@ from auth.ecm.models import *
 from auth.hauling.models import *
 
 
-try:
-    os.remove('data.db')
-except Exception as e:
-    print(str(e))
+db.drop_all()
 db.create_all()
 u = User('Celeo Servasse', 'Wormbro', True, True, True, True)
 db.session.add(u)

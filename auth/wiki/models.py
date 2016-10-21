@@ -52,11 +52,13 @@ class Revision(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     contents = db.Column(db.String)
     date = db.Column(db.DateTime)
+    state = db.Column(db.String)
 
-    def __init__(self, page_id, user_id, contents):
+    def __init__(self, page_id, user_id, contents, state='Pending'):
         self.page_id = page_id
         self.user_id = user_id
         self.contents = contents
+        self.state = state
         self.date = datetime.utcnow()
 
     @property

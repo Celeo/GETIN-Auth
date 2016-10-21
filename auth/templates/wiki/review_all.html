@@ -3,8 +3,14 @@
 
 {% block content %}
 
-<h2>Submission Review</h2>
+<h2>Pending Submissions</h2>
 
-<h4 class="red-text">TODO</h4>
+<ul class="circle bigger">
+  {% for review in pending %}
+    <li><a href="#">
+      Review #{{ review.id }} on {{ review.page.namespace.name }}/{{ review.page.name }} by {{ review.user.name }}
+    </a></li>
+  {% endfor %}
+</ul>
 
 {% endblock content %}

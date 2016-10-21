@@ -34,7 +34,7 @@ def recent_changes():
 def review_changes():
     if not current_user.is_authenticated or not current_user.wiki_mod:
         return redirect('/')
-    return render_template('wiki/review_all.html')
+    return render_template('wiki/review_all.html', pending=Revision.query.filter_by(state='Pending').all())
 
 
 @app.route('/admin')
@@ -61,7 +61,9 @@ def edit(namespace, name):
             db.session.commit()
         r = Revision(page.id, current_user.id, contents)
         db.session.add(r)
-        page.contents = contents
+        if current_user.wiki_mod:
+            r.status = 'Accepted by *server*'
+            page.contents = contents
         db.session.commit()
         return 'Saved'
     return render_template('wiki/edit.html', namespace=namespace, name=name, page=page, ns=ns)
