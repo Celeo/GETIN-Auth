@@ -489,7 +489,8 @@ def join():
         return redirect(url_for('.join'))
     reddit_link = reddit_oauth.get_authorize_url()
     return render_template('hr/join.html',
-        character_name=character_name, reddit_link=reddit_link, all_members=get_all_member_names())
+        character_name=character_name, reddit_link=reddit_link,
+        all_members=get_all_member_names(), discord_link=app.config['DISCORD_LINK'])
 
 
 @app.route('/sync')
