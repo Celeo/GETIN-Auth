@@ -434,6 +434,7 @@ def delete(id):
 
 
 @app.route('/join', methods=['GET', 'POST'])
+@login_required
 def join():
     """
     This page allows a user to submit an application to join the corporation
@@ -447,9 +448,10 @@ def join():
         None
 
     Returns:
-        rendered tempalte 'join.html'
+        rendered template 'join.html'
     """
-    if get_member_for(current_user).status == 'Accepted':
+    member = get_member_for(current_user)
+    if member.status == 'Accepted':
         return redirect(url_for('.index'))
     character_name = session.get('character_name') or current_user.name if not current_user.is_anonymous else None
     if not character_name:
@@ -476,11 +478,12 @@ def join():
             if not int(result['key']['@accessMask']) == app.config['API_KEY_MASK']:
                 flash('Wrong key mask - you need {}'.format(app.config['API_KEY_MASK']), 'error')
                 return redirect(url_for('.join'))
-            get_member_for(current_user).status = 'New'
-            get_member_for(current_user).main = main
-            get_member_for(current_user).key_id = key
-            get_member_for(current_user).v_code = code
-            get_member_for(current_user).reddit = reddit
+            member = get_member_for(current_user)
+            member.status = 'New'
+            member.main = main
+            member.key_id = key
+            member.v_code = code
+            member.reddit = reddit
             db.session.commit()
             new_apps.append(current_user.name)
             flash('Your application is in - someone will take a look soon', 'success')
@@ -604,6 +607,7 @@ def reports():
 
 
 @app.route('/reddit/callback')
+@login_required
 def reddit_oauth_callback():
     """
     This transient endpoint completes the reddit OAuth verification process
@@ -619,9 +623,10 @@ def reddit_oauth_callback():
         return redirect(url_for('.login'))
     current_app.logger.debug('Reddit callback by {}'.format(current_user.name))
     username = reddit_oauth.get_token(request.args['code'])
-    get_member_for(current_user).reddit = username
+    user_member = get_member_for(current_user)
+    user_member.reddit = username
     current_app.logger.info('{} updated their reddit account to {}'.format(current_user.name, username))
-    for member in Member.query.filter_by(main=get_member_for(current_user).character_name).all():
+    for member in Member.query.filter_by(main=user_member.character_name).all():
         member.reddit = username
         current_app.logger.info('{} updated their alt {} reddit account to {}'.format(
             current_user.name, member.character_name, username
