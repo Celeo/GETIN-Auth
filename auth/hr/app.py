@@ -554,10 +554,8 @@ def sync_members():
     for member in Member.query.filter_by(status='Accepted').all():
         if member.character_name not in api_members:
             current_app.logger.warning('-- ' + member.character_name + ' is not in the corporation')
-            member.status = 'Left'
-            member.corporation = ''
             left_members.append(member.character_name)
-            member.hidden = True
+            db.session.delete(member)
     try:
         db.session.commit()
         current_app.logger.info('-- Database saved after member sync')
