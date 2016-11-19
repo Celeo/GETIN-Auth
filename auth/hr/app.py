@@ -2,7 +2,7 @@ from functools import wraps
 
 from flask import Blueprint, current_app, render_template, redirect, request, url_for, flash, session, abort, jsonify
 from flask_login import current_user, login_required
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from preston.xmlapi import Preston as XMLAPI
 
 from auth.shared import db, eveapi
@@ -585,7 +585,7 @@ def reports():
     if not current_user.recruiter and not current_user.admin:
         current_app.logger.debug('Visibility access denied to {}'.format(current_user.name))
         return redirect(url_for('.index'))
-    members = Member.query.filter(Member.status != 'Left').all()
+    members = Member.query.filter(and_(Member.status != 'Left', Member.status != 'Guest')).all()
     member_names = get_all_member_names()
     defunct_alts = []
     invalid_mains = []
