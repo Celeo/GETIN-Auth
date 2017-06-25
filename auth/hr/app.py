@@ -41,9 +41,18 @@ def _prerender():
 
 @app.before_request
 def _preprocess():
+    update_member(current_user.name, False)
+
+
+def update_member(name, fetch_id=True):
     member = get_member_for(current_user)
-    if not member and not current_user.is_anonymous:
-        db.session.add(Member(current_user.name, get_corp_for_name(current_user.name)))
+    if not current_user.is_anonymous:
+        if member:
+            if fetch_id:
+                member.character_id = get_id_for_name(name)
+        else:
+            id = get_id_for_name(current_user.name)
+            db.session.add(Member(current_user.name, id, get_corp_for_id(id)))
         db.session.commit()
 
 
@@ -176,7 +185,8 @@ def add_member():
             current_app.logger.info('POST on add_member didn\'t have a valid key')
             flash('Invalid key for user', 'danger')
             return redirect(url_for('.add_member'))
-        member = Member(name, get_corp_for_name(name), status, reddit, main, notes, apikey, apicode)
+        id = get_id_for_name(name)
+        member = Member(name, id, get_corp_for_id(id), status, reddit, main, notes, apikey, apicode)
         current_app.logger.info('New member added through add_member: ' + str(name))
         db.session.add(member)
         db.session.commit()
@@ -542,7 +552,7 @@ def sync_members():
         if not db_model:
             current_app.logger.info('-- Added {} to the corporation'.format(name))
             existing_members.append(name)
-            db_model = Member(name, app.config['CORPORATION'], 'Accepted')
+            db_model = Member(name, member['@characterID'], app.config['CORPORATION'], 'Accepted')
             db.session.add(db_model)
         db_model.corporation = app.config['CORPORATION']
         if db_model.status not in ['Accepted', 'Recruiter']:
@@ -742,22 +752,39 @@ def get_all_member_names():
     return sorted([m.character_name for m in Member.query.all()], key=lambda x: x.lower())
 
 
-def get_corp_for_name(name):
+def get_id_for_name(name):
     """
     This helper method takes a character's name and returns their EVE character ID.
+
+    Args:
+        name (str): character name
+
+    Returns:
+        int: character id
+    """
+    return eveapi['xml'].eve.CharacterId(names=name)['rowset']['row']['@characterID']
+
+
+def get_corp_for_name(name):
+    """
+    This helper method takes a character's name and returns their corporation.
+
     Args:
         name (str) - full character name
     Returns:
+
         value (int) of their EVE character ID
     """
-    return get_corp_for_id(eveapi['xml'].eve.CharacterId(names=name)['rowset']['row']['@characterID'])
+    return get_corp_for_id(get_id_for_name(name))
 
 
 def get_corp_for_id(id):
     """
     This helper method takes a character's id and returns their corporation name.
+
     Args:
         name (str) - full character name
+
     Returns:
         value (str) of their corporation's name
     """
@@ -765,6 +792,15 @@ def get_corp_for_id(id):
 
 
 def get_member_for(user):
+    """
+    This helper method returns the corresponding Member object for the user.
+
+    Args:
+        user (User): the user
+
+    Returns:
+        Member: member object if there's a user logged in, otherwise None
+    """
     if current_user.is_anonymous:
         return None
     return Member.query.filter_by(character_name=user.name).first()

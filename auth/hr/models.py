@@ -8,6 +8,7 @@ class Member(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     character_name = db.Column(db.String)
+    character_id = db.Column(db.Integer)
     corporation = db.Column(db.String)
     reddit = db.Column(db.String)
     date = db.Column(db.DateTime)
@@ -28,9 +29,10 @@ class Member(db.Model):
     know_pvp = db.Column(db.Boolean)
     know_doctrine = db.Column(db.Boolean)
 
-    def __init__(self, character_name, corporation, status='Guest',
+    def __init__(self, character_name, character_id, corporation, status='Guest',
             reddit=None, main=None, notes=None, key_id=None, v_code=None):
         self.character_name = character_name
+        self.character_id = character_id
         self.corporation = corporation
         self.date = datetime.utcnow()
         self.status = status
