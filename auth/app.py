@@ -108,7 +108,7 @@ def eve_oauth_callback():
     user = User.query.filter_by(name=character_name).first()
     if user:
         login_user(user)
-        update_member(character_name)
+        update_member()
         app.logger.debug('{} logged in with EVE SSO'.format(current_user.name))
         flash('Logged in', 'success')
         return redirect(url_for('landing'))

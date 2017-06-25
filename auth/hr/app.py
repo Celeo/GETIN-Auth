@@ -41,15 +41,15 @@ def _prerender():
 
 @app.before_request
 def _preprocess():
-    update_member(current_user.name, False)
+    update_member(False)
 
 
-def update_member(name, fetch_id=True):
+def update_member(fetch_id=True):
     member = get_member_for(current_user)
     if not current_user.is_anonymous:
         if member:
             if fetch_id:
-                member.character_id = get_id_for_name(name)
+                member.character_id = get_id_for_name(current_user.name)
         else:
             id = get_id_for_name(current_user.name)
             db.session.add(Member(current_user.name, id, get_corp_for_id(id)))
