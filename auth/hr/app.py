@@ -565,6 +565,7 @@ def sync_members():
         if member.character_name not in api_members:
             current_app.logger.warning('-- ' + member.character_name + ' is not in the corporation')
             left_members.append(member.character_name)
+            db.session.delete(member.user)
             db.session.delete(member)
     try:
         db.session.commit()
