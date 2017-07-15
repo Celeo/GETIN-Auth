@@ -42,10 +42,14 @@ def _prerender():
 @app.before_request
 def _preprocess():
     member = get_member_for(current_user)
-    if not current_user.is_anonymous and not member:
-        id = get_id_for_name(current_user.name)
-        db.session.add(Member(current_user.name, id, get_corp_for_id(id)))
-        db.session.commit()
+    if not current_user.is_anonymous:
+        if not member:
+            id = get_id_for_name(current_user.name)
+            db.session.add(Member(current_user.name, id, get_corp_for_id(id)))
+            db.session.commit()
+        elif not member.character_id:
+            member.character_id = get_id_for_name(member.character_name)
+            db.session.commit()
 
 
 @app.route('/', methods=['GET', 'POST'])
