@@ -177,7 +177,7 @@ def add_member():
         current_app.logger.debug('POST on add_member by {}: name = {}, reddit = {}, status = {}, main = {}'.format(
             current_user.name, name, reddit, status, main
         ))
-        if not validate_key('{} - {}'.format(apikey, apicode, None), None):
+        if not validate_key(apikey, apicode, None):
             current_app.logger.info('POST on add_member didn\'t have a valid key')
             flash('Invalid key for user', 'danger')
             return redirect(url_for('.add_member'))
