@@ -246,7 +246,7 @@
       Enter the EVE API key <code>keyID</code> and <code>vCode</code>.<br>
     </p>
     <div class="row">
-      <form action="{{ url_for('.index') }}" method="POST" class="col s12" id="formKey">
+      <form action="{{ url_for('.details', id=member.id) }}" method="POST" class="col s12" id="formKey">
         <div class="row">
           <div class="input-field col s6">
             <label for="key">KeyID</label>
@@ -256,7 +256,7 @@
             <label for="vcode">vCode</label>
             <input type="text" name="v_code" value="{{ member.v_code or '' }}" required>
           </div>
-          <input type="text" name="section" value="key" hidden>
+          <input type="text" name="section" value="keys" hidden>
         </div>
       </form>
     </div>
