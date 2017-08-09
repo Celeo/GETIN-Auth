@@ -331,7 +331,7 @@ def details(id):
             current_app.logger.info('POST on details - keys by {} for {}'.format(
                 current_user.name, member.character_name
             ))
-            validate_key(request.form['keys'], member)
+            validate_key(request.form['key_id'], request.form['v_code'], member)
         elif request.form['section'] == 'status':
             current_app.logger.info('POST on details - status by {} for {}: {}'.format(
                 current_user.name, member.character_name, request.form['status']
