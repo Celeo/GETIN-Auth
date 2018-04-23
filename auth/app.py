@@ -9,7 +9,7 @@ from preston.xmlapi import Preston as XMLAPI
 from auth.shared import db, eveapi
 from auth.models import User
 from auth.hr.app import app as hr_blueprint
-from auth.wiki.app import app as wiki_blueprint
+# from auth.wiki.app import app as wiki_blueprint
 
 
 # Create and configure app
@@ -42,7 +42,7 @@ handler.setLevel(app.config['LOGGING_LEVEL'])
 app.logger.addHandler(handler)
 # Blueprints
 app.register_blueprint(hr_blueprint, url_prefix='/hr')
-app.register_blueprint(wiki_blueprint, url_prefix='/wiki')
+# app.register_blueprint(wiki_blueprint, url_prefix='/wiki')
 
 
 app.logger.info('Initialization complete')
